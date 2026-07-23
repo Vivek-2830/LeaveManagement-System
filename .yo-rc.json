@@ -1,0 +1,16 @@
+{
+  "@microsoft/generator-sharepoint": {
+    "plusBeta": false,
+    "isCreatingSolution": true,
+    "version": "1.14.0",
+    "libraryName": "leave-management-system",
+    "libraryId": "6f229c79-fea6-468b-97e9-eea2f2c8ce9f",
+    "environment": "spo",
+    "packageManager": "npm",
+    "solutionName": "leave-management-system",
+    "solutionShortDescription": "leave-management-system description",
+    "skipFeatureDeployment": true,
+    "isDomainIsolated": false,
+    "componentType": "webpart"
+  }
+}
