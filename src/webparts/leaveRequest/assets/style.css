@@ -1,0 +1,405 @@
+/* ================= layout ================= */
+
+.leaveManagementSystem {
+    padding: 1em;
+}
+
+.leave-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.title-underline {
+    height: 3px;
+    width: 60px;
+    background: #007680;
+    margin: 6px 0 20px;
+    border-radius: 2px;
+}
+
+/* ================= balance cards ================= */
+
+.balance-cards {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.balance-card {
+    flex: 1;
+    min-width: 200px;
+    border-radius: 12px;
+    padding: 18px 22px;
+    color: #ffffff;
+}
+
+.balance-card.paid {
+    background: #0078d4;
+}
+
+.balance-card.unpaid {
+    background: #d13438;
+}
+
+.balance-value {
+    font-size: 30px;
+    font-weight: 700;
+    display: block;
+}
+
+.balance-label {
+    font-size: 13px;
+    opacity: 0.9;
+}
+
+/* ================= toolbar ================= */
+
+.leave-toolbar {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 16px;
+}
+
+/* ================= tabs (Pivot) ================= */
+
+.leave-filters {
+    margin-bottom: 16px;
+}
+
+.leave-filters .ms-Pivot-link {
+    background: #f2f2f2;
+    padding: 8px 16px;
+    border-radius: 25px;
+    font-weight: 600;
+    color: #222;
+    border: none;
+    height: 36px;
+    margin-right: 8px;
+}
+
+.leave-filters .ms-Pivot-link:hover {
+    background: #e6e6e6;
+}
+
+.leave-filters .ms-Pivot-link.is-selected {
+    background: #007680;
+    color: #ffffff;
+}
+
+.leave-filters .ms-Pivot-link.is-selected::before {
+    content: none;
+}
+
+/* ================= search ================= */
+
+.leave-search {
+    max-width: 280px;
+    margin-bottom: 14px;
+}
+
+.leave-search input {
+    width: 100%;
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid #d0d0d0;
+    font-size: 14px;
+}
+
+/* ================= table ================= */
+
+.leave-table-wrap {
+    overflow-x: auto;
+}
+
+.leave-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #ffffff;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.leave-table th {
+    text-align: left;
+    background: #f4f6f7;
+    padding: 10px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #333;
+    white-space: nowrap;
+}
+
+.leave-table td {
+    padding: 10px 14px;
+    font-size: 13px;
+    color: #333;
+    border-top: 1px solid #eee;
+    vertical-align: middle;
+}
+
+.leave-table tr:hover td {
+    background: #fafafa;
+}
+
+.leave-empty {
+    text-align: center;
+    padding: 30px;
+    color: #666;
+}
+
+/* ================= status badges ================= */
+
+.status-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 20px;
+    text-align: center;
+}
+
+.status-pending {
+    background: #fff4ce;
+    color: #8a6d00;
+}
+
+.status-approved {
+    background: #dff6dd;
+    color: #107c10;
+}
+
+.status-rejected,
+.status-cancelled {
+    background: #fde7e9;
+    color: #a4262c;
+}
+
+/* ================= buttons ================= */
+
+.btn {
+    border: none;
+    border-radius: 6px;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btn + .btn {
+    margin-left: 8px;
+}
+
+.btn-primary {
+    background: #007680;
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background: #005a63;
+}
+
+.btn-danger {
+    background: #d13438;
+    color: #ffffff;
+}
+
+.btn-danger:hover {
+    background: #a4262c;
+}
+
+.btn-secondary {
+    background: #f2f2f2;
+    color: #333;
+}
+
+.btn-secondary:hover {
+    background: #e6e6e6;
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* ================= message bars ================= */
+
+.message-bar {
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    margin-bottom: 14px;
+}
+
+.message-bar.error {
+    background: #fde7e9;
+    color: #a4262c;
+}
+
+.message-bar.success {
+    background: #dff6dd;
+    color: #107c10;
+}
+
+/* ================= modal / form panel ================= */
+
+.leave-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35);
+    display: flex;
+    justify-content: flex-end;
+    z-index: 1000;
+}
+
+.leave-form-panel {
+    width: 480px;
+    max-width: 92vw;
+    height: 100%;
+    background: #ffffff;
+    padding: 24px;
+    overflow-y: auto;
+    box-shadow: -4px 0 16px rgba(0, 0, 0, 0.15);
+}
+
+.comments-panel {
+    width: 420px;
+    max-width: 92vw;
+    background: #ffffff;
+    border-radius: 10px;
+    padding: 24px;
+    margin: auto;
+    align-self: center;
+}
+
+.leave-overlay.comments-overlay {
+    justify-content: center;
+    align-items: center;
+}
+
+.panel-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 18px;
+}
+
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: #333;
+}
+
+.form-group .required::after {
+    content: ' *';
+    color: #d13438;
+}
+
+.form-group input[type='date'],
+.form-group input[type='text'],
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: 1px solid #d0d0d0;
+    font-size: 13px;
+    box-sizing: border-box;
+}
+
+.form-row {
+    display: flex;
+    gap: 16px;
+}
+
+.form-row .form-group {
+    flex: 1;
+}
+
+.radio-group {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.radio-group label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 500;
+    font-size: 13px;
+}
+
+.total-days {
+    font-size: 13px;
+    font-weight: 600;
+    color: #007680;
+    margin-bottom: 16px;
+}
+
+.form-errors {
+    background: #fde7e9;
+    color: #a4262c;
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    margin-bottom: 16px;
+}
+
+.form-errors div + div {
+    margin-top: 4px;
+}
+
+.form-actions {
+    margin-top: 20px;
+}
+
+/* ================= spinner ================= */
+
+.leave-spinner-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 0;
+    gap: 10px;
+    color: #555;
+    font-size: 14px;
+}
+
+.leave-spinner {
+    width: 22px;
+    height: 22px;
+    border: 3px solid #d9d9d9;
+    border-top-color: #007680;
+    border-radius: 50%;
+    animation: leave-spin 0.8s linear infinite;
+}
+
+@keyframes leave-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ================= responsive ================= */
+
+@media (max-width: 768px) {
+    .balance-cards {
+        flex-direction: column;
+    }
+
+    .form-row {
+        flex-direction: column;
+        gap: 0;
+    }
+
+    .leave-form-panel {
+        width: 100%;
+    }
+}

@@ -4,4 +4,5 @@ export interface ILeaveRequestProps {
   environmentMessage: string;
   hasTeamsContext: boolean;
   userDisplayName: string;
+  context: any;
 }
