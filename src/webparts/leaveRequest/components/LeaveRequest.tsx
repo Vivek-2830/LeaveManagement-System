@@ -93,31 +93,6 @@ export default class LeaveRequest extends React.Component<ILeaveRequestProps, IL
 
   /* ============================= data loading ============================= */
 
-  // private async loadAll(): Promise<void> {
-  //   this.setState({ loading: true, errorMessage: '' });
-
-  //   const userEmail = this.props.context.pageContext.user.email || this.props.context.pageContext.user.loginName;
-
-  //   const currentEmployee = await this.service.getCurrentEmployee(userEmail);
-  //   const balance = await this.service.getLeaveBalance(userEmail);
-  //   const isHRTeam = await this.service.isCurrentUserInHRTeam();
-
-  //   let isReportingManager = false;
-  //   let directReports: IEmployeeInfo[] = [];
-
-  //   if (!isHRTeam && balance) {
-  //     directReports = await this.service.getDirectReports(balance.EmployeeNameId);
-  //     isReportingManager = directReports.length > 0;
-  //   }
-
-  //   this.setState(
-  //     { currentEmployee, balance, isHRTeam, isReportingManager, directReports },
-  //     () => {
-  //       this.refreshTables().finally(() => this.setState({ loading: false }));
-  //     }
-  //   );
-  // }
-
   private async loadAll(): Promise<void> {
     this.setState({ loading: true, errorMessage: '' });
 
@@ -228,7 +203,7 @@ export default class LeaveRequest extends React.Component<ILeaveRequestProps, IL
   private openEditLeaveForm = async (itemId: number): Promise<void> => {
     const item = await this.service.getLeaveById(itemId);
     if (!item) return;
-    const notifyUsers = item.NotifyUsers ? item.NotifyUsers.results : [];
+    const notifyUsers:any = item.NotifyUsers ? item.NotifyUsers : [];
     const values: ILeaveFormValues = {
       itemId: item.Id,
       startDate: item.StartDate ? item.StartDate.substring(0, 10) : '',
@@ -324,17 +299,23 @@ export default class LeaveRequest extends React.Component<ILeaveRequestProps, IL
       const notifyLoginNames = formValues.notifyUsers.map((u) => u.loginName);
       const notifyIds = await this.service.ensureUsers(notifyLoginNames);
 
+      // IMPORTANT: don't use start.toISOString() / end.toISOString() here.
+      // parseIsoDate() builds a *local* midnight Date, and .toISOString()
+      // converts that to UTC — in any timezone ahead of UTC (e.g. IST) that
+      // rolls the date back by one day before it ever reaches SharePoint.
+      // Sending the yyyy-MM-dd value as UTC midnight keeps the calendar date
+      // stable end-to-end (save -> read back on edit -> re-save).
       const payload: INewLeavePayload = {
         EmpNameId: balance.EmployeeNameId,
-        StartDate: start.toISOString(),
-        EndDate: end.toISOString(),
+        StartDate: `${formValues.startDate}T00:00:00.000Z`,
+        EndDate: `${formValues.endDate}T00:00:00.000Z`,
         Description: formValues.description,
         LeaveType: formValues.leaveType,
         TotalDays: totalDays.toString(),
         Duration: sameDay ? formValues.duration || null : null,
         StartDateInterval: sameDay ? null : formValues.startDateInterval,
         EndDateInterval: sameDay ? null : formValues.endDateInterval,
-        // NotifyUsersId: notifyIds
+        NotifyUsersId: { results: notifyIds }
       };
 
       let editLeaveType = '';
@@ -417,7 +398,7 @@ export default class LeaveRequest extends React.Component<ILeaveRequestProps, IL
       if (!item) return;
       await this.service.cancelLeave(itemId);
 
-      const empBalance = await this.service.getLeaveBalanceByEmployeeId(item.EmpNameId);
+      const empBalance = await this.service.getLeaveBalanceByEmployeeId(item.Id);
       if (empBalance) {
         const totalDays = parseFloat(item.TotalDays);
         const patch: IBalanceUpdate = {};

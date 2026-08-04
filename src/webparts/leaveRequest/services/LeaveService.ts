@@ -16,7 +16,7 @@ export interface INewLeavePayload {
   Duration: string | null;
   StartDateInterval: string | null;
   EndDateInterval: string | null;
-  NotifyUsersId?: number[];
+  NotifyUsersId?: { results: number[] };
 }
 
 export interface IBalanceUpdate {
@@ -162,7 +162,7 @@ export class LeaveService {
       .items.select(
         'Id', 'EmpName/Id', 'StartDate', 'EndDate', 'LeaveType', 'Duration',
         'StartDateInterval', 'EndDateInterval', 'TotalDays', 'Description',
-        'NotifyUsers/Id', 'NotifyUsers/Title'
+        'NotifyUsers/Id', 'NotifyUsers/Title' , 'NotifyUsers/EMail'
       )
       .expand('EmpName', 'NotifyUsers')
       .filter(`Id eq ${itemId}`)
