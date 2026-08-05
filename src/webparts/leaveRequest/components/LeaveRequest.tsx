@@ -1,7 +1,7 @@
 import * as React from 'react';
 import styles from './LeaveRequest.module.scss';
 import { ILeaveRequestProps } from './ILeaveRequestProps';
-import { Pivot, PivotItem } from 'office-ui-fabric-react';
+import { DetailsList, IColumn, Pivot, PivotItem, SelectionMode } from 'office-ui-fabric-react';
 import { PeoplePicker, PrincipalType } from "@pnp/spfx-controls-react/lib/PeoplePicker";
 import { escape } from '@microsoft/sp-lodash-subset';
 import { LeaveService, INewLeavePayload, IBalanceUpdate } from '../services/LeaveService';
@@ -34,12 +34,16 @@ export interface ILeaveRequestState {
 
   activeTab: 'approval' | 'myPending' | 'history';
   searchTerm: string;
+  sortColumn: string;
+  sortDescending: boolean;
 
   isFormOpen: boolean;
   formValues: ILeaveFormValues;
   formErrors: string[];
   totalDays: number;
   isSaving: boolean;
+
+  formOwnerBalance?: ILeaveBalance;
 
   isCommentsOpen: boolean;
   commentsAction: 'approve' | 'reject' | '';
@@ -71,6 +75,8 @@ export default class LeaveRequest extends React.Component<ILeaveRequestProps, IL
       pendingApproval: [],
       activeTab: 'myPending',
       searchTerm: '',
+      sortColumn: 'StartDate',
+      sortDescending: false,
       isFormOpen: false,
       formValues: emptyLeaveForm(),
       formErrors: [],
@@ -197,12 +203,15 @@ export default class LeaveRequest extends React.Component<ILeaveRequestProps, IL
   }
 
   private openNewLeaveForm = (): void => {
-    this.setState({ isFormOpen: true, formValues: emptyLeaveForm(), formErrors: [], totalDays: 0 });
+    this.setState({ isFormOpen: true, formValues: emptyLeaveForm(), formErrors: [], totalDays: 0, formOwnerBalance: this.state.balance });
   };
 
   private openEditLeaveForm = async (itemId: number): Promise<void> => {
     const item = await this.service.getLeaveById(itemId);
     if (!item) return;
+
+    const ownerBalance = await this.service.getLeaveBalanceByEmployeeId(item.Id);
+
     const notifyUsers:any = item.NotifyUsers ? item.NotifyUsers : [];
     const values: ILeaveFormValues = {
       itemId: item.Id,
@@ -216,7 +225,7 @@ export default class LeaveRequest extends React.Component<ILeaveRequestProps, IL
       notifyUsers: notifyUsers.map((u) => ({ id: u.Id, text: u.Title, loginName: u.Title }))
     };
     const { totalDays } = this.recalcTotals(values);
-    this.setState({ isFormOpen: true, formValues: values, formErrors: [], totalDays });
+    this.setState({ isFormOpen: true, formValues: values, formErrors: [], totalDays, formOwnerBalance: ownerBalance });
   };
 
   private closeForm = (): void => {
@@ -287,11 +296,123 @@ export default class LeaveRequest extends React.Component<ILeaveRequestProps, IL
       return;
     }
 
-    const { balance, currentEmployee, formValues, totalDays } = this.state;
-    if (!balance || !currentEmployee) return;
+    // const { balance, currentEmployee, formValues, totalDays } = this.state;
+    // if (!balance || !currentEmployee) return;
+
+    // this.setState({ isSaving: true, errorMessage: '' });
+    // try {
+
+      
+
+    //   const start = parseIsoDate(formValues.startDate) as Date;
+    //   const end = parseIsoDate(formValues.endDate) as Date;
+    //   const sameDay = isSameCalendarDay(start, end);
+
+    //   const notifyLoginNames = formValues.notifyUsers.map((u) => u.loginName);
+    //   const notifyIds = await this.service.ensureUsers(notifyLoginNames);
+
+    //   // IMPORTANT: don't use start.toISOString() / end.toISOString() here.
+    //   // parseIsoDate() builds a *local* midnight Date, and .toISOString()
+    //   // converts that to UTC — in any timezone ahead of UTC (e.g. IST) that
+    //   // rolls the date back by one day before it ever reaches SharePoint.
+    //   // Sending the yyyy-MM-dd value as UTC midnight keeps the calendar date
+    //   // stable end-to-end (save -> read back on edit -> re-save).
+    //   const payload: INewLeavePayload = {
+    //     EmpNameId: balance.EmployeeNameId,
+    //     StartDate: `${formValues.startDate}T00:00:00.000Z`,
+    //     EndDate: `${formValues.endDate}T00:00:00.000Z`,
+    //     Description: formValues.description,
+    //     LeaveType: formValues.leaveType,
+    //     TotalDays: totalDays.toString(),
+    //     Duration: sameDay ? formValues.duration || null : null,
+    //     StartDateInterval: sameDay ? null : formValues.startDateInterval,
+    //     EndDateInterval: sameDay ? null : formValues.endDateInterval,
+    //     NotifyUsersId: { results: notifyIds }
+    //   };
+
+    //   let editLeaveType = '';
+    //   let editTotalDays = 0;
+    //   if (formValues.itemId > 0) {
+    //     const original = await this.service.getLeaveById(formValues.itemId);
+    //     if (original) {
+    //       editLeaveType = original.LeaveType;
+    //       editTotalDays = parseFloat(original.TotalDays);
+    //     }
+    //     await this.service.updateLeave(formValues.itemId, payload);
+    //   } else {
+    //     await this.service.createLeave(payload);
+    //   }
+
+    //   const balancePatch = this.computeBalancePatch({
+    //     isEdit: formValues.itemId > 0,
+    //     newLeaveType: formValues.leaveType,
+    //     newDifference: totalDays,
+    //     editLeaveType,
+    //     editTotalDays,
+    //     remainingPL: balance.PL,
+    //     currentUnpaidLeaves: balance.UnpaidLeave
+    //   });
+    //   await this.service.updateLeaveBalance(balance.Id, balancePatch);
+
+    //   this.setState({
+    //     isFormOpen: false,
+    //     formValues: emptyLeaveForm(),
+    //     successMessage: formValues.itemId > 0 ? 'Leave details are successfully updated.' : 'Request for leave has been submitted.'
+    //   });
+
+    //   await this.loadAll();
+    // } catch (e) {
+    //   this.setState({ errorMessage: this.errText(e) });
+    // } finally {
+    //   this.setState({ isSaving: false });
+    // }
+
+    const { currentEmployee, formValues, totalDays } = this.state;
+    if (!currentEmployee) return;
 
     this.setState({ isSaving: true, errorMessage: '' });
     try {
+      const isEdit = formValues.itemId > 0;
+
+      // Resolve who this leave actually belongs to, and THEIR balance.
+      // Never assume it's the current viewer — HR/a manager can be editing
+      // a direct report's leave. Using the viewer's own balance here was
+      // the root cause of edits silently reassigning the leave and
+      // debiting/crediting the wrong person.
+      let original: ILeaveHistoryItem | undefined;
+      let ownerBalance: ILeaveBalance | undefined;
+
+      if (isEdit) {
+        original = await this.service.getLeaveById(formValues.itemId);
+        if (!original) {
+          this.setState({ errorMessage: 'This leave request could no longer be found. It may have been deleted.' });
+          return;
+        }
+        ownerBalance = await this.service.getLeaveBalanceByEmployeeId(original.EmpNameId);
+      } else {
+        ownerBalance = this.state.balance;
+      }
+
+      if (!ownerBalance) {
+        this.setState({ errorMessage: 'Could not find a leave balance record for this employee.' });
+        return;
+      }
+
+      const editLeaveType = original ? original.LeaveType : '';
+      const editTotalDays = original ? parseFloat(original.TotalDays) : 0;
+
+      // Days already reserved under the SAME leave type (on edit) count back
+      // toward what's available, so editing without changing the day count
+      // never falsely reports "insufficient balance".
+      const availablePL = ownerBalance.PL + (isEdit && editLeaveType === 'Paid Leave' ? editTotalDays : 0);
+      if (formValues.leaveType === 'Paid Leave' && totalDays > availablePL) {
+        this.setState({
+          isSaving: false,
+          formErrors: [`You do not have sufficient leaves left to apply for selected days. You have only ${availablePL} leave remaining.`]
+        });
+        return;
+      }
+
       const start = parseIsoDate(formValues.startDate) as Date;
       const end = parseIsoDate(formValues.endDate) as Date;
       const sameDay = isSameCalendarDay(start, end);
@@ -306,7 +427,7 @@ export default class LeaveRequest extends React.Component<ILeaveRequestProps, IL
       // Sending the yyyy-MM-dd value as UTC midnight keeps the calendar date
       // stable end-to-end (save -> read back on edit -> re-save).
       const payload: INewLeavePayload = {
-        EmpNameId: balance.EmployeeNameId,
+        EmpNameId: ownerBalance.EmployeeNameId,
         StartDate: `${formValues.startDate}T00:00:00.000Z`,
         EndDate: `${formValues.endDate}T00:00:00.000Z`,
         Description: formValues.description,
@@ -318,34 +439,28 @@ export default class LeaveRequest extends React.Component<ILeaveRequestProps, IL
         NotifyUsersId: { results: notifyIds }
       };
 
-      let editLeaveType = '';
-      let editTotalDays = 0;
-      if (formValues.itemId > 0) {
-        const original = await this.service.getLeaveById(formValues.itemId);
-        if (original) {
-          editLeaveType = original.LeaveType;
-          editTotalDays = parseFloat(original.TotalDays);
-        }
+      if (isEdit) {
         await this.service.updateLeave(formValues.itemId, payload);
       } else {
         await this.service.createLeave(payload);
       }
 
       const balancePatch = this.computeBalancePatch({
-        isEdit: formValues.itemId > 0,
+        isEdit,
         newLeaveType: formValues.leaveType,
         newDifference: totalDays,
         editLeaveType,
         editTotalDays,
-        remainingPL: balance.PL,
-        currentUnpaidLeaves: balance.UnpaidLeave
+        remainingPL: ownerBalance.PL,
+        currentUnpaidLeaves: ownerBalance.UnpaidLeave
       });
-      await this.service.updateLeaveBalance(balance.Id, balancePatch);
+      await this.service.updateLeaveBalance(ownerBalance.Id, balancePatch);
 
       this.setState({
         isFormOpen: false,
         formValues: emptyLeaveForm(),
-        successMessage: formValues.itemId > 0 ? 'Leave details are successfully updated.' : 'Request for leave has been submitted.'
+        formErrors: [],
+        successMessage: isEdit ? 'Leave details are successfully updated.' : 'Request for leave has been submitted.'
       });
 
       await this.loadAll();
@@ -395,17 +510,51 @@ export default class LeaveRequest extends React.Component<ILeaveRequestProps, IL
     this.setState({ isSaving: true, errorMessage: '' });
     try {
       const item = await this.service.getLeaveById(itemId);
-      if (!item) return;
-      await this.service.cancelLeave(itemId);
 
-      const empBalance = await this.service.getLeaveBalanceByEmployeeId(item.Id);
+        if (!item) return;
+
+        // Prevent double cancel
+        if (item.isCancelled || item.isRejected) {
+            this.setState({
+                errorMessage: "Leave has already been cancelled or rejected."
+            });
+            return;
+        }
+
+        await this.service.cancelLeave(itemId);
+
+      const empBalance = await this.service.getLeaveBalanceByEmployeeId(item.EmpNameId);
+      // if (empBalance) {
+      //   const totalDays = parseFloat(item.TotalDays);
+      //   const patch: IBalanceUpdate = {};
+      //   if (item.LeaveType === 'Paid Leave') patch.PL = (empBalance.PL + totalDays).toString();
+      //   else if (item.LeaveType === 'Unpaid Leave') patch.UnpaidLeave = (empBalance.UnpaidLeave - totalDays).toString();
+      //   await this.service.updateLeaveBalance(empBalance.Id, patch);
+      // }
+
       if (empBalance) {
+
         const totalDays = parseFloat(item.TotalDays);
+    
         const patch: IBalanceUpdate = {};
-        if (item.LeaveType === 'Paid Leave') patch.PL = (empBalance.PL + totalDays).toString();
-        else if (item.LeaveType === 'Unpaid Leave') patch.UnpaidLeave = (empBalance.UnpaidLeave - totalDays).toString();
-        await this.service.updateLeaveBalance(empBalance.Id, patch);
-      }
+    
+        if (item.LeaveType === "Paid Leave") {
+    
+            patch.PL = (empBalance.PL + totalDays).toString();
+    
+        } else if (item.LeaveType === "Unpaid Leave") {
+    
+            patch.UnpaidLeave = (
+                empBalance.UnpaidLeave - totalDays
+            ).toString();
+    
+        }
+    
+        await this.service.updateLeaveBalance(
+            empBalance.Id,
+            patch
+        );
+    }
 
       this.setState({ successMessage: 'Leave has been deleted.' });
       await this.loadAll();
@@ -436,17 +585,53 @@ export default class LeaveRequest extends React.Component<ILeaveRequestProps, IL
         await this.service.setApproval(commentsTarget.Id, true, currentEmployee.Title, comments);
         this.setState({ successMessage: 'Leave has been approved.' });
       } else {
-        await this.service.setApproval(commentsTarget.Id, false, currentEmployee.Title, comments);
-        const empBalance = await this.service.getLeaveBalanceByEmployeeId(commentsTarget.EmpNameId);
-        if (empBalance) {
-          const totalDays = parseFloat(commentsTarget.TotalDays);
-          const patch: IBalanceUpdate = {};
-          if (commentsTarget.LeaveType === 'Paid Leave') patch.PL = (empBalance.PL + totalDays).toString();
-          else if (commentsTarget.LeaveType === 'Unpaid Leave') patch.UnpaidLeave = (empBalance.UnpaidLeave - totalDays).toString();
-          await this.service.updateLeaveBalance(empBalance.Id, patch);
+
+        // Prevent double reject
+        const latestLeave = await this.service.getLeaveById(commentsTarget.Id);
+    
+        if (latestLeave && (latestLeave.isRejected || latestLeave.isCancelled)) {
+            this.setState({
+                errorMessage: "This leave request has already been processed."
+            });
+            return;
         }
-        this.setState({ successMessage: 'Leave request has been rejected.' });
-      }
+    
+        await this.service.setApproval(
+            commentsTarget.Id,
+            false,
+            currentEmployee.Title,
+            comments
+        );
+    
+        const empBalance = await this.service.getLeaveBalanceByEmployeeId(
+            commentsTarget.EmpName.Id
+        );
+    
+        if (empBalance) {
+    
+            const totalDays = parseFloat(commentsTarget.TotalDays);
+    
+            const patch: IBalanceUpdate = {};
+    
+            if (commentsTarget.LeaveType === "Paid Leave") {
+    
+                patch.PL = (empBalance.PL + totalDays).toString();
+    
+            } else if (commentsTarget.LeaveType === "Unpaid Leave") {
+    
+                patch.UnpaidLeave = (
+                    empBalance.UnpaidLeave - totalDays
+                ).toString();
+    
+            }
+    
+            await this.service.updateLeaveBalance(empBalance.Id, patch);
+        }
+    
+        this.setState({
+            successMessage: "Leave request has been rejected."
+        });
+    }
       this.closeComments();
       await this.loadAll();
     } catch (e) {
@@ -458,50 +643,220 @@ export default class LeaveRequest extends React.Component<ILeaveRequestProps, IL
 
   /* ============================= render helpers ============================= */
 
-  private renderRow(item: ILeaveHistoryItem, mode: 'approval' | 'myPending' | 'history'): React.ReactElement {
-    const { status, className } = getLeaveStatus(item);
-    const { isHRTeam } = this.state;
+  // private renderRow(item: ILeaveHistoryItem, mode: 'approval' | 'myPending' | 'history'): React.ReactElement {
+  //   const { status, className } = getLeaveStatus(item);
+  //   const { isHRTeam } = this.state;
 
-    return (
-      <tr key={item.Id}>
-        {(mode !== 'myPending') && <td>{item.EmpName ? item.EmpName.Title : ''}</td>}
-        <td>{formatDisplayDate(item.StartDate)}</td>
-        <td>{formatDisplayDate(item.EndDate)}</td>
-        <td>{item.LeaveType}</td>
-        <td>{item.Description}</td>
-        {mode === 'history' && <td>{item.ApproverName || ''}</td>}
-        {mode === 'history' && (
-          <td>
-            <span className={`status-badge ${className}`}>{status}</span>
-          </td>
-        )}
-        <td>
-          {mode === 'approval' && (
-            <>
-              <button className="btn btn-primary" onClick={() => this.openComments(item, 'approve')}>Approve</button>
-              <button className="btn btn-danger" onClick={() => this.openComments(item, 'reject')}>Reject</button>
-            </>
-          )}
-          {mode === 'myPending' && (
-            <>
-              <button className="btn btn-primary" onClick={() => this.openEditLeaveForm(item.Id)}>Edit</button>
-              <button className="btn btn-danger" onClick={() => this.cancelLeave(item.Id)}>Delete</button>
-            </>
-          )}
-          {mode === 'history' && status === 'Pending' && (
-            <>
-              {isHRTeam && <button className="btn btn-primary" onClick={() => this.openEditLeaveForm(item.Id)}>Edit</button>}
-              <button className="btn btn-danger" onClick={() => this.cancelLeave(item.Id)}>Cancel</button>
-            </>
-          )}
-        </td>
-      </tr>
-    );
+  //   return (
+  //     <tr key={item.Id}>
+  //       {(mode !== 'myPending') && <td>{item.EmpName ? item.EmpName.Title : ''}</td>}
+  //       <td>{formatDisplayDate(item.StartDate)}</td>
+  //       <td>{formatDisplayDate(item.EndDate)}</td>
+  //       <td>{item.LeaveType}</td>
+  //       <td>{item.Description}</td>
+  //       {mode === 'history' && <td>{item.ApproverName || ''}</td>}
+  //       {mode === 'history' && (
+  //         <td>
+  //           <span className={`status-badge ${className}`}>{status}</span>
+  //         </td>
+  //       )}
+  //       <td>
+  //         {mode === 'approval' && (
+  //           <>
+  //             <button className="btn btn-primary" onClick={() => this.openComments(item, 'approve')}>Approve</button>
+  //             <button className="btn btn-danger" onClick={() => this.openComments(item, 'reject')}>Reject</button>
+  //           </>
+  //         )}
+  //         {mode === 'myPending' && (
+  //           <>
+  //             <button className="btn btn-primary" onClick={() => this.openEditLeaveForm(item.Id)}>Edit</button>
+  //             <button className="btn btn-danger" onClick={() => this.cancelLeave(item.Id)}>Delete</button>
+  //           </>
+  //         )}
+  //         {mode === 'history' && status === 'Pending' && (
+  //           <>
+  //             {isHRTeam && <button className="btn btn-primary" onClick={() => this.openEditLeaveForm(item.Id)}>Edit</button>}
+  //             <button className="btn btn-danger" onClick={() => this.cancelLeave(item.Id)}>Cancel</button>
+  //           </>
+  //         )}
+  //       </td>
+  //     </tr>
+  //   );
+  // }
+
+  private sortRows(items: ILeaveHistoryItem[]): ILeaveHistoryItem[] {
+    const { sortColumn, sortDescending } = this.state;
+    const sorted = items.slice();
+    sorted.sort((a, b) => {
+      let cmp = 0;
+      switch (sortColumn) {
+        case 'EmpName':
+          cmp = (a.EmpName ? a.EmpName.Title : '').localeCompare(b.EmpName ? b.EmpName.Title : '');
+          break;
+        case 'StartDate':
+          cmp = new Date(a.StartDate).getTime() - new Date(b.StartDate).getTime();
+          break;
+        case 'EndDate':
+          cmp = new Date(a.EndDate).getTime() - new Date(b.EndDate).getTime();
+          break;
+        case 'LeaveType':
+          cmp = (a.LeaveType || '').localeCompare(b.LeaveType || '');
+          break;
+        case 'Description':
+          cmp = (a.Description || '').localeCompare(b.Description || '');
+          break;
+        case 'ApproverName':
+          cmp = (a.ApproverName || '').localeCompare(b.ApproverName || '');
+          break;
+        case 'Status':
+          cmp = getLeaveStatus(a).status.localeCompare(getLeaveStatus(b).status);
+          break;
+        default:
+          cmp = 0;
+      }
+      return sortDescending ? -cmp : cmp;
+    });
+    return sorted;
   }
 
-  private renderTable(mode: 'approval' | 'myPending' | 'history', emptyMessage: string): React.ReactElement {
-    const rows = this.searchFilter(this.currentTabRows());
+
+  private onColumnClick = (ev: React.MouseEvent<HTMLElement>, column: IColumn): void => {
+    const { sortColumn, sortDescending } = this.state;
+    const isSameColumn = sortColumn === column.key;
+    this.setState({
+      sortColumn: column.key,
+      sortDescending: isSameColumn ? !sortDescending : false
+    });
+  };
+
+  private getColumns(mode: 'approval' | 'myPending' | 'history'): IColumn[] {
     const { isHRTeam } = this.state;
+    const { sortColumn, sortDescending } = this.state;
+
+    const sortableHeader = (key: string, name: string, minWidth: number): IColumn => ({
+      key,
+      name,
+      fieldName: key,
+      minWidth,
+      isResizable: true,
+      isSorted: sortColumn === key,
+      isSortedDescending: sortDescending,
+      onColumnClick: this.onColumnClick
+    });
+
+    const columns: IColumn[] = [];
+
+    if (mode !== 'myPending') {
+      columns.push({
+        ...sortableHeader('EmpName', 'Employee Name', 140),
+        onRender: (item: ILeaveHistoryItem) => (item.EmpName ? item.EmpName.Title : '')
+      });
+    }
+
+    columns.push({
+      ...sortableHeader('StartDate', 'Start Date', 100),
+      onRender: (item: ILeaveHistoryItem) => formatDisplayDate(item.StartDate)
+    });
+    columns.push({
+      ...sortableHeader('EndDate', 'End Date', 100),
+      onRender: (item: ILeaveHistoryItem) => formatDisplayDate(item.EndDate)
+    });
+    columns.push(sortableHeader('LeaveType', 'Leave Type', 100));
+    columns.push(sortableHeader('Description', 'Description', 180));
+
+    if (mode === 'history') {
+      columns.push({
+        ...sortableHeader('ApproverName', 'Approver', 100),
+        onRender: (item: ILeaveHistoryItem) => item.ApproverName || ''
+      });
+      columns.push({
+        ...sortableHeader('Status', 'Status', 100),
+        onRender: (item: ILeaveHistoryItem) => {
+          const { status, className } = getLeaveStatus(item);
+          return <span className={`status-badge ${className}`}>{status}</span>;
+        }
+      });
+    }
+
+    columns.push({
+      key: 'ActionItem',
+      name: 'Action Item',
+      fieldName: 'ActionItem',
+      minWidth: 140,
+      isResizable: true,
+      onRender: (item: ILeaveHistoryItem) => {
+        const { status } = getLeaveStatus(item);
+        return (
+          <>
+            {mode === 'approval' && (
+              <>
+                <button className="btn btn-primary" onClick={() => this.openComments(item, 'approve')}>Approve</button>
+                <button className="btn btn-danger" onClick={() => this.openComments(item, 'reject')}>Reject</button>
+              </>
+            )}
+            {mode === 'myPending' && (
+              <>
+                <button className="btn btn-primary" onClick={() => this.openEditLeaveForm(item.Id)}>Edit</button>
+                <button className="btn btn-danger" onClick={() => this.cancelLeave(item.Id)}>Delete</button>
+              </>
+            )}
+            {mode === 'history' && status === 'Pending' && (
+              <>
+                {isHRTeam && <button className="btn btn-primary" onClick={() => this.openEditLeaveForm(item.Id)}>Edit</button>}
+                <button className="btn btn-danger" onClick={() => this.cancelLeave(item.Id)}>Cancel</button>
+              </>
+            )}
+          </>
+        );
+      }
+    });
+
+    return columns;
+  }
+
+
+  // private renderTable(mode: 'approval' | 'myPending' | 'history', emptyMessage: string): React.ReactElement {
+  //   const rows = this.searchFilter(this.currentTabRows());
+  //   const { isHRTeam } = this.state;
+
+  //   return (
+  //     <>
+  //       <div className="leave-search">
+  //         <input
+  //           type="text"
+  //           placeholder="Search"
+  //           value={this.state.searchTerm}
+  //           onChange={(e) => this.setState({ searchTerm: e.target.value })}
+  //         />
+  //       </div>
+
+  //       {rows.length === 0 ? (
+  //         <p className="leave-empty">{emptyMessage}</p>
+  //       ) : (
+  //         <div className="leave-table-wrap">
+  //           <table className="leave-table">
+  //             <thead>
+  //               <tr>
+  //                 {mode !== 'myPending' && <th>Employee Name</th>}
+  //                 <th>Start Date</th>
+  //                 <th>End Date</th>
+  //                 <th>Leave Type</th>
+  //                 <th>Description</th>
+  //                 {mode === 'history' && <th>Approver</th>}
+  //                 {mode === 'history' && <th>Status</th>}
+  //                 <th>Action Item</th>
+  //               </tr>
+  //             </thead>
+  //             <tbody>{rows.map((item) => this.renderRow(item, mode))}</tbody>
+  //           </table>
+  //         </div>
+  //       )}
+  //     </>
+  //   );
+  // }
+
+  private renderTable(mode: 'approval' | 'myPending' | 'history', emptyMessage: string): React.ReactElement {
+    const rows = this.sortRows(this.searchFilter(this.currentTabRows()));
 
     return (
       <>
@@ -509,6 +864,7 @@ export default class LeaveRequest extends React.Component<ILeaveRequestProps, IL
           <input
             type="text"
             placeholder="Search"
+            aria-label="Search"
             value={this.state.searchTerm}
             onChange={(e) => this.setState({ searchTerm: e.target.value })}
           />
@@ -518,21 +874,13 @@ export default class LeaveRequest extends React.Component<ILeaveRequestProps, IL
           <p className="leave-empty">{emptyMessage}</p>
         ) : (
           <div className="leave-table-wrap">
-            <table className="leave-table">
-              <thead>
-                <tr>
-                  {mode !== 'myPending' && <th>Employee Name</th>}
-                  <th>Start Date</th>
-                  <th>End Date</th>
-                  <th>Leave Type</th>
-                  <th>Description</th>
-                  {mode === 'history' && <th>Approver</th>}
-                  {mode === 'history' && <th>Status</th>}
-                  <th>Action Item</th>
-                </tr>
-              </thead>
-              <tbody>{rows.map((item) => this.renderRow(item, mode))}</tbody>
-            </table>
+            <DetailsList
+              items={rows}
+              columns={this.getColumns(mode)}
+              selectionMode={SelectionMode.none}
+              getKey={(item: ILeaveHistoryItem) => item.Id.toString()}
+              setKey={mode}
+            />
           </div>
         )}
       </>
@@ -541,11 +889,11 @@ export default class LeaveRequest extends React.Component<ILeaveRequestProps, IL
 
   private renderLeaveForm(): React.ReactElement | null {
     if (!this.state.isFormOpen) return null;
-    const { formValues, formErrors, totalDays, isSaving, balance } = this.state;
+    const { formValues, formErrors, totalDays, isSaving, formOwnerBalance } = this.state;
     const sameDay =
       !!formValues.startDate && !!formValues.endDate && formValues.startDate === formValues.endDate;
     const showIntervals = !!formValues.startDate && !!formValues.endDate && !sameDay;
-    const offerPaidLeave = !!balance && balance.PL > 0;
+    const offerPaidLeave = !!formOwnerBalance && formOwnerBalance.PL > 0;
 
     return (
       <div className="leave-overlay">
@@ -646,12 +994,16 @@ export default class LeaveRequest extends React.Component<ILeaveRequestProps, IL
               onChange={(e) => this.onFieldChange('leaveType', e.target.value as LeaveTypeValue)}
             >
               <option value="">Select Leave Type</option>
-              {offerPaidLeave ? (
+              {(offerPaidLeave || formValues.leaveType === 'Paid Leave') && (
                 <option value="Paid Leave">Paid Leave</option>
-              ) : (
-                <option value="Unpaid Leave">Unpaid Leave</option>
               )}
+              <option value="Unpaid Leave">Unpaid Leave</option>
             </select>
+            {formOwnerBalance && (
+              <small style={{ color: '#666' }}>
+                Paid leave balance: {formOwnerBalance.PL} &nbsp;|&nbsp; Unpaid leave taken: {formOwnerBalance.UnpaidLeave}
+              </small>
+            )}
           </div>
 
           <div className="form-group">

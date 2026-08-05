@@ -80,7 +80,7 @@ export class LeaveService {
     const items = await sp.web.lists
       .getByTitle(LEAVE_BALANCE_LIST)
       .items.select('Id', 'SL', 'PL', 'UnpaidLeave', 'EmployeeName/Id', 'EmployeeName/Title', 'EmployeeName/EmailId')
-      .expand('EmployeeName/EmailId')
+      .expand('EmployeeName')
       .filter(`EmployeeName/EmailId eq '${this.escape(userLoginEmail)}'`)
       .top(1)
       .orderBy('Id', false)
@@ -126,7 +126,7 @@ export class LeaveService {
         'Id', 'EmpName/Id', 'EmpName/Title', 'StartDate', 'EndDate', 'LeaveType', 'Duration',
         'StartDateInterval', 'EndDateInterval', 'TotalDays', 'Description',
         'isApproved', 'isRejected', 'isCancelled', 'ApproverName', 'ApproverComment',
-        'NotifyUsers/Id', 'NotifyUsers/Title'
+        'NotifyUsers/Id', 'NotifyUsers/Title', 'NotifyUsers/EMail'
       )
       .expand('EmpName', 'NotifyUsers')
       .top(5000)
@@ -156,20 +156,109 @@ export class LeaveService {
     return items as unknown as ILeaveHistoryItem[];
   }
 
+  // public async getLeaveById(itemId: number): Promise<ILeaveHistoryItem | undefined> {
+  //   const items = await sp.web.lists
+  //     .getByTitle(LEAVE_HISTORY_LIST)
+  //     .items.select(
+  //       // 'Id', 'EmpName/Id', 'StartDate', 'EndDate', 'LeaveType', 'Duration',
+  //       // 'StartDateInterval', 'EndDateInterval', 'TotalDays', 'Description',
+  //       // 'NotifyUsers/Id', 'NotifyUsers/Title' , 'NotifyUsers/EMail'
+  //       'Id',
+  //     'EmpNameId',
+  //     'EmpName/Id',
+  //     'StartDate',
+  //     'EndDate',
+  //     'LeaveType',
+  //     'Duration',
+  //     'StartDateInterval',
+  //     'EndDateInterval',
+  //     'TotalDays',
+  //     'Description',
+  //     'isApproved',
+  //     'isRejected',
+  //     'isCancelled',
+  //     'NotifyUsers/Id',
+  //     'NotifyUsers/Title',
+  //     'NotifyUsers/EMail'
+  //     )
+  //     .expand('EmpName', 'NotifyUsers')
+  //     .filter(`Id eq ${itemId}`)
+  //     .top(1)
+  //     .get();
+  //   if (items.length === 0) return undefined;
+  //   return items[0] as unknown as ILeaveHistoryItem;
+  // }
+
   public async getLeaveById(itemId: number): Promise<ILeaveHistoryItem | undefined> {
+
     const items = await sp.web.lists
       .getByTitle(LEAVE_HISTORY_LIST)
-      .items.select(
-        'Id', 'EmpName/Id', 'StartDate', 'EndDate', 'LeaveType', 'Duration',
-        'StartDateInterval', 'EndDateInterval', 'TotalDays', 'Description',
-        'NotifyUsers/Id', 'NotifyUsers/Title' , 'NotifyUsers/EMail'
+      .items
+      .select(
+        'Id',
+        'EmpNameId',
+        'EmpName/Id',
+        'EmpName/Title',
+        'StartDate',
+        'EndDate',
+        'LeaveType',
+        'Duration',
+        'StartDateInterval',
+        'EndDateInterval',
+        'TotalDays',
+        'Description',
+        'isApproved',
+        'isRejected',
+        'isCancelled',
+        'ApproverName',
+        'ApproverComment',
+        'NotifyUsers/Id',
+        'NotifyUsers/Title',
+        'NotifyUsers/EMail'
       )
       .expand('EmpName', 'NotifyUsers')
       .filter(`Id eq ${itemId}`)
       .top(1)
       .get();
-    if (items.length === 0) return undefined;
-    return items[0] as unknown as ILeaveHistoryItem;
+  
+    if (items.length === 0) {
+      return undefined;
+    }
+  
+    const r = items[0];
+  
+    return {
+      Id: r.Id,
+      EmpNameId: r.EmpNameId || (r.EmpName ? r.EmpName.Id : 0),
+      EmpName: r.EmpName
+        ? {
+            Title: r.EmpName.Title,
+            Id: r.EmpName.Id
+          }
+        : undefined,
+  
+      StartDate: r.StartDate,
+      EndDate: r.EndDate,
+      LeaveType: r.LeaveType,
+      Duration: r.Duration,
+      StartDateInterval: r.StartDateInterval,
+      EndDateInterval: r.EndDateInterval,
+      TotalDays: r.TotalDays,
+      Description: r.Description,
+  
+      NotifyUsers: r.NotifyUsers
+        ? {
+            results: r.NotifyUsers
+          }
+        : undefined,
+  
+      isApproved: r.isApproved || false,
+      isRejected: r.isRejected || false,
+      isCancelled: r.isCancelled || false,
+  
+      ApproverName: r.ApproverName,
+      ApproverComment: r.ApproverComment
+    };
   }
 
   public async createLeave(payload: INewLeavePayload): Promise<{ Id: number }> {

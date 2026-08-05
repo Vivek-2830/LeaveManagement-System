@@ -28,12 +28,13 @@ export type LeaveStatus = 'Pending' | 'Approved' | 'Rejected' | 'Cancelled';
 export interface INotifyUser {
   Id: number;
   Title: string;
+  EMail?: string;
 }
 
 export interface ILeaveHistoryItem {
   Id: number;
   EmpNameId: number;
-  EmpName?: { Title: string };
+  EmpName?: { Title: string, Id: number };
   StartDate: string;
   EndDate: string;
   LeaveType: LeaveTypeValue | '';
