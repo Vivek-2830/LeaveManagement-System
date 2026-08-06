@@ -300,4 +300,54 @@ export class LeaveService {
   private escape(value: string): string {
     return value.replace(/'/g, "''");
   }
+
+  public async getApprovalHistory(
+    isHRTeam: boolean,
+    reportIds: number[]
+  ): Promise<ILeaveHistoryItem[]> {
+  
+    let filter = 'isApproved eq 0 and isRejected eq 0';
+
+    if (!isHRTeam) {
+      if (reportIds.length === 0) return [];
+      const idFilter = reportIds.map((id) => `EmpName/Id eq ${id}`).join(' or ');
+      filter = `(${idFilter}) and ${filter}`;
+    }
+  
+    // if (!isHRTeam) {
+  
+    //   if (reportIds.length === 0) {
+    //     return [];
+    //   }
+  
+    //   const employeeFilter = reportIds
+    //     .map(id => `EmpName/Id eq ${id}`)
+    //     .join(" or ");
+  
+    //   filter = `(${employeeFilter}) and (${filter})`;
+    // }
+  
+    const items = await sp.web.lists
+      .getByTitle(LEAVE_HISTORY_LIST)
+      .items
+      .select(
+        "Id",
+        "EmpName/Id",
+        "EmpName/Title",
+        "StartDate",
+        "EndDate",
+        "LeaveType",
+        "TotalDays",
+        "Description",
+        "ApproverName",
+        "ApproverComment"
+      )
+      .expand("EmpName")
+      .filter(filter)
+      .top(5000)
+      .orderBy("Modified", false)
+      .get();
+  
+    return items as ILeaveHistoryItem[];
+  }
 }

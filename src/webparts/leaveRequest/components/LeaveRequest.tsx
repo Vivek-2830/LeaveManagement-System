@@ -32,7 +32,7 @@ export interface ILeaveRequestState {
   allLeaves: ILeaveHistoryItem[];
   pendingApproval: ILeaveHistoryItem[];
 
-  activeTab: 'approval' | 'myPending' | 'history';
+  activeTab: 'approval' | 'approvalHistory' |'myPending' | 'history';
   searchTerm: string;
   sortColumn: string;
   sortDescending: boolean;
@@ -49,6 +49,10 @@ export interface ILeaveRequestState {
   commentsAction: 'approve' | 'reject' | '';
   commentsTarget?: ILeaveHistoryItem;
   comments: string;
+
+  originalLeave?: any;
+
+  approvalHistory: ILeaveHistoryItem[];
 }
 
 require('../assets/style.css');
@@ -84,8 +88,8 @@ export default class LeaveRequest extends React.Component<ILeaveRequestProps, IL
       isSaving: false,
       isCommentsOpen: false,
       commentsAction: '',
-      comments: ''
-      
+      comments: '',
+      approvalHistory: [],
     };
   }
 
@@ -134,14 +138,21 @@ export default class LeaveRequest extends React.Component<ILeaveRequestProps, IL
     const allLeaves = await this.service.getAllLeaves(isHRTeam, employeeId);
 
     let pendingApproval: ILeaveHistoryItem[] = [];
+    let approvalHistory: ILeaveHistoryItem[] = [];
     if (isHRTeam || isReportingManager) {
+      const reportIds = directReports.map((r) => r.Id);
       pendingApproval = await this.service.getPendingApprovalLeaves(
         isHRTeam,
         directReports.map((r) => r.Id)
       );
+      approvalHistory = await this.service.getApprovalHistory(
+        isHRTeam,
+        // reportIds
+        directReports.map((r) => r.Id)
+      );
     }
 
-    this.setState({ allLeaves, pendingApproval });
+    this.setState({ allLeaves, pendingApproval, approvalHistory });
   }
 
   /* ============================= derived data ============================= */
@@ -212,7 +223,7 @@ export default class LeaveRequest extends React.Component<ILeaveRequestProps, IL
 
     const ownerBalance = await this.service.getLeaveBalanceByEmployeeId(item.Id);
 
-    const notifyUsers:any = item.NotifyUsers ? item.NotifyUsers : [];
+    const notifyUsers = item.NotifyUsers ? item.NotifyUsers.results: [];
     const values: ILeaveFormValues = {
       itemId: item.Id,
       startDate: item.StartDate ? item.StartDate.substring(0, 10) : '',
@@ -222,10 +233,10 @@ export default class LeaveRequest extends React.Component<ILeaveRequestProps, IL
       endDateInterval: (item.EndDateInterval as any) || 'Second half',
       leaveType: item.LeaveType,
       description: item.Description,
-      notifyUsers: notifyUsers.map((u) => ({ id: u.Id, text: u.Title, loginName: u.Title }))
+      notifyUsers: notifyUsers.map((u) => ({ id: u.Id, text: u.Title, loginName: u.EMail || u.Title }))
     };
     const { totalDays } = this.recalcTotals(values);
-    this.setState({ isFormOpen: true, formValues: values, formErrors: [], totalDays, formOwnerBalance: ownerBalance });
+    this.setState({ isFormOpen: true, formValues: values, formErrors: [], totalDays, formOwnerBalance: ownerBalance, originalLeave: item });
   };
 
   private closeForm = (): void => {
@@ -274,7 +285,8 @@ export default class LeaveRequest extends React.Component<ILeaveRequestProps, IL
   };
 
   private validate(): string[] {
-    const { formValues, totalDays, balance } = this.state;
+    // const { formValues, totalDays, balance } = this.state;
+    const { formValues, totalDays, balance, originalLeave } = this.state;
     const errors: string[] = [];
     if (!formValues.startDate) errors.push('Start date is required.');
     if (!formValues.endDate) errors.push('End date is required.');
@@ -282,9 +294,30 @@ export default class LeaveRequest extends React.Component<ILeaveRequestProps, IL
     if (!formValues.description) errors.push('Description is required.');
     if (formValues.notifyUsers.length === 0) errors.push('Notify Users is required.');
 
+    // const remainingPL = balance ? balance.PL : 0;
+    // if (formValues.leaveType === 'Paid Leave' && totalDays > remainingPL) {
+    //   errors.push(`You do not have sufficient leaves left to apply for selected days. You have only ${remainingPL} leave remaining.`);
+    // }
+
     const remainingPL = balance ? balance.PL : 0;
-    if (formValues.leaveType === 'Paid Leave' && totalDays > remainingPL) {
-      errors.push(`You do not have sufficient leaves left to apply for selected days. You have only ${remainingPL} leave remaining.`);
+
+    const isEdit = formValues.itemId > 0;
+
+    const availablePL =
+      remainingPL +
+      (isEdit &&
+        originalLeave?.LeaveType === "Paid Leave" &&
+        formValues.leaveType === "Paid Leave"
+        ? Number(originalLeave.TotalDays || 0)
+        : 0);
+
+    if (
+      formValues.leaveType === "Paid Leave" &&
+      totalDays > availablePL
+    ) {
+      errors.push(
+        `You do not have sufficient Paid Leave. You have only ${availablePL} day(s) available.`
+      );
     }
     return errors;
   }
@@ -302,7 +335,7 @@ export default class LeaveRequest extends React.Component<ILeaveRequestProps, IL
     // this.setState({ isSaving: true, errorMessage: '' });
     // try {
 
-      
+
 
     //   const start = parseIsoDate(formValues.startDate) as Date;
     //   const end = parseIsoDate(formValues.endDate) as Date;
@@ -379,6 +412,7 @@ export default class LeaveRequest extends React.Component<ILeaveRequestProps, IL
       // a direct report's leave. Using the viewer's own balance here was
       // the root cause of edits silently reassigning the leave and
       // debiting/crediting the wrong person.
+
       let original: ILeaveHistoryItem | undefined;
       let ownerBalance: ILeaveBalance | undefined;
 
@@ -398,19 +432,39 @@ export default class LeaveRequest extends React.Component<ILeaveRequestProps, IL
         return;
       }
 
-      const editLeaveType = original ? original.LeaveType : '';
-      const editTotalDays = original ? parseFloat(original.TotalDays) : 0;
+      // const editLeaveType = original ? original.LeaveType : '';
+      // const editTotalDays = original ? parseFloat(original.TotalDays) : 0;
 
-      // Days already reserved under the SAME leave type (on edit) count back
-      // toward what's available, so editing without changing the day count
-      // never falsely reports "insufficient balance".
-      const availablePL = ownerBalance.PL + (isEdit && editLeaveType === 'Paid Leave' ? editTotalDays : 0);
-      if (formValues.leaveType === 'Paid Leave' && totalDays > availablePL) {
-        this.setState({
-          isSaving: false,
-          formErrors: [`You do not have sufficient leaves left to apply for selected days. You have only ${availablePL} leave remaining.`]
-        });
-        return;
+      // // Days already reserved under the SAME leave type (on edit) count back
+      // // toward what's available, so editing without changing the day count
+      // // never falsely reports "insufficient balance".
+      // const availablePL = ownerBalance.PL + (isEdit && editLeaveType === 'Paid Leave' ? editTotalDays : 0);
+      // if (formValues.leaveType === 'Paid Leave' && totalDays > availablePL) {
+      //   this.setState({
+      //     isSaving: false,
+      //     formErrors: [`You do not have sufficient leaves left to apply for selected days. You have only ${availablePL} leave remaining.`]
+      //   });
+      //   return;
+      // }
+
+      const editLeaveType = original?.LeaveType || "";
+      const editTotalDays = Number(original?.TotalDays || 0);
+
+      // Add back the currently edited leave only if it is Paid Leave
+      const availablePL =
+        ownerBalance.PL +
+        (isEdit && editLeaveType === "Paid Leave" ? editTotalDays : 0);
+
+      if (formValues.leaveType === "Paid Leave") {
+        if (totalDays > availablePL) {
+          this.setState({
+            isSaving: false,
+            formErrors: [
+              `Insufficient Paid Leave. Available: ${availablePL} day(s) (including the ${editTotalDays} day(s) from the leave being edited).`
+            ]
+          });
+          return;
+        }
       }
 
       const start = parseIsoDate(formValues.startDate) as Date;
@@ -426,6 +480,7 @@ export default class LeaveRequest extends React.Component<ILeaveRequestProps, IL
       // rolls the date back by one day before it ever reaches SharePoint.
       // Sending the yyyy-MM-dd value as UTC midnight keeps the calendar date
       // stable end-to-end (save -> read back on edit -> re-save).
+
       const payload: INewLeavePayload = {
         EmpNameId: ownerBalance.EmployeeNameId,
         StartDate: `${formValues.startDate}T00:00:00.000Z`,
@@ -693,6 +748,9 @@ export default class LeaveRequest extends React.Component<ILeaveRequestProps, IL
         case 'EmpName':
           cmp = (a.EmpName ? a.EmpName.Title : '').localeCompare(b.EmpName ? b.EmpName.Title : '');
           break;
+        case 'TotalDays':
+          cmp = (a.TotalDays || '').localeCompare(b.TotalDays || '');
+          break;
         case 'StartDate':
           cmp = new Date(a.StartDate).getTime() - new Date(b.StartDate).getTime();
           break;
@@ -729,8 +787,8 @@ export default class LeaveRequest extends React.Component<ILeaveRequestProps, IL
     });
   };
 
-  private getColumns(mode: 'approval' | 'myPending' | 'history'): IColumn[] {
-    const { isHRTeam } = this.state;
+  private getColumns(mode: 'approval' | 'approvalHistory' | 'myPending' | 'history'): IColumn[] {
+    const { isHRTeam,isReportingManager } = this.state;
     const { sortColumn, sortDescending } = this.state;
 
     const sortableHeader = (key: string, name: string, minWidth: number): IColumn => ({
@@ -738,7 +796,7 @@ export default class LeaveRequest extends React.Component<ILeaveRequestProps, IL
       name,
       fieldName: key,
       minWidth,
-      isResizable: true,
+      isResizable: false,
       isSorted: sortColumn === key,
       isSortedDescending: sortDescending,
       onColumnClick: this.onColumnClick
@@ -748,10 +806,12 @@ export default class LeaveRequest extends React.Component<ILeaveRequestProps, IL
 
     if (mode !== 'myPending') {
       columns.push({
-        ...sortableHeader('EmpName', 'Employee Name', 140),
+        ...sortableHeader('EmpName', 'Employee Name', 100),
         onRender: (item: ILeaveHistoryItem) => (item.EmpName ? item.EmpName.Title : '')
       });
     }
+
+    columns.push(sortableHeader('TotalDays', 'Total Days', 100));
 
     columns.push({
       ...sortableHeader('StartDate', 'Start Date', 100),
@@ -762,7 +822,7 @@ export default class LeaveRequest extends React.Component<ILeaveRequestProps, IL
       onRender: (item: ILeaveHistoryItem) => formatDisplayDate(item.EndDate)
     });
     columns.push(sortableHeader('LeaveType', 'Leave Type', 100));
-    columns.push(sortableHeader('Description', 'Description', 180));
+    columns.push(sortableHeader('Description', 'Description', 100));
 
     if (mode === 'history') {
       columns.push({
@@ -778,12 +838,26 @@ export default class LeaveRequest extends React.Component<ILeaveRequestProps, IL
       });
     }
 
+    if (mode === 'approvalHistory') {
+      // columns.push({
+      //   ...sortableHeader('ApproverName', 'Approver', 100),
+      //   onRender: (item: ILeaveHistoryItem) => item.ApproverName || ''
+      // });
+      columns.push({
+        ...sortableHeader('Status', 'Status', 100),
+        onRender: (item: ILeaveHistoryItem) => {
+          const { status, className } = getLeaveStatus(item);
+          return <span className={`status-badge ${className}`}>{status}</span>;
+        }
+      });
+    }
+
     columns.push({
       key: 'ActionItem',
       name: 'Action Item',
       fieldName: 'ActionItem',
-      minWidth: 140,
-      isResizable: true,
+      minWidth: 200,
+      isResizable: false,
       onRender: (item: ILeaveHistoryItem) => {
         const { status } = getLeaveStatus(item);
         return (
@@ -805,6 +879,14 @@ export default class LeaveRequest extends React.Component<ILeaveRequestProps, IL
                 {isHRTeam && <button className="btn btn-primary" onClick={() => this.openEditLeaveForm(item.Id)}>Edit</button>}
                 <button className="btn btn-danger" onClick={() => this.cancelLeave(item.Id)}>Cancel</button>
               </>
+            )}
+            {mode === 'approvalHistory' && status === 'Approved' && (
+              <button
+                className="btn btn-danger"
+                onClick={() => this.cancelLeave(item.Id)}
+              >
+                Cancel
+              </button>
             )}
           </>
         );
@@ -855,7 +937,7 @@ export default class LeaveRequest extends React.Component<ILeaveRequestProps, IL
   //   );
   // }
 
-  private renderTable(mode: 'approval' | 'myPending' | 'history', emptyMessage: string): React.ReactElement {
+  private renderTable(mode: 'approval'| 'approvalHistory' | 'myPending' | 'history', emptyMessage: string): React.ReactElement {
     const rows = this.sortRows(this.searchFilter(this.currentTabRows()));
 
     return (
@@ -895,6 +977,21 @@ export default class LeaveRequest extends React.Component<ILeaveRequestProps, IL
     const showIntervals = !!formValues.startDate && !!formValues.endDate && !sameDay;
     const offerPaidLeave = !!formOwnerBalance && formOwnerBalance.PL > 0;
 
+
+    const today = new Date();
+    const currentYear = today.getFullYear();
+
+    const fyStart =
+      today.getMonth() >= 3 // April = 3
+        ? `${currentYear}-04-01`
+        : `${currentYear - 1}-04-01`;
+
+    const fyEnd =
+      today.getMonth() >= 3
+        ? `${currentYear + 1}-03-31`
+        : `${currentYear}-03-31`;
+
+
     return (
       <div className="leave-overlay">
         <div className="leave-form-panel">
@@ -914,8 +1011,10 @@ export default class LeaveRequest extends React.Component<ILeaveRequestProps, IL
               <input
                 type="date"
                 value={formValues.startDate}
-                min={new Date().toISOString().substring(0, 10)}
-                onChange={(e) => this.onDateChange('startDate', e.target.value)}
+                // min={formValues.itemId > 0 ? undefined : new Date().toISOString().split("T")[0]}
+                min={fyStart}
+                max={fyEnd}
+                onChange={(e) => this.onDateChange("startDate", e.target.value)}
               />
             </div>
             <div className="form-group">
@@ -923,8 +1022,14 @@ export default class LeaveRequest extends React.Component<ILeaveRequestProps, IL
               <input
                 type="date"
                 value={formValues.endDate}
-                min={formValues.startDate || new Date().toISOString().substring(0, 10)}
-                onChange={(e) => this.onDateChange('endDate', e.target.value)}
+                // min={
+                //   formValues.itemId > 0
+                //     ? undefined
+                //     : (formValues.startDate || new Date().toISOString().split("T")[0])
+                // }
+                min={fyStart}
+                max={fyEnd}
+                onChange={(e) => this.onDateChange("endDate", e.target.value)}
               />
             </div>
           </div>
@@ -994,10 +1099,15 @@ export default class LeaveRequest extends React.Component<ILeaveRequestProps, IL
               onChange={(e) => this.onFieldChange('leaveType', e.target.value as LeaveTypeValue)}
             >
               <option value="">Select Leave Type</option>
-              {(offerPaidLeave || formValues.leaveType === 'Paid Leave') && (
+              {/* {(offerPaidLeave || formValues.leaveType === 'Paid Leave') && (
                 <option value="Paid Leave">Paid Leave</option>
               )}
-              <option value="Unpaid Leave">Unpaid Leave</option>
+              <option value="Unpaid Leave">Unpaid Leave</option> */}
+              {(formOwnerBalance && formOwnerBalance.PL > 0 )|| formValues.leaveType === 'Paid Leave' ? (
+                  <option value="Paid Leave">Paid Leave</option>
+                ) : (
+                  <option value="Unpaid Leave">Unpaid Leave</option>
+              )}
             </select>
             {formOwnerBalance && (
               <small style={{ color: '#666' }}>
@@ -1135,6 +1245,7 @@ export default class LeaveRequest extends React.Component<ILeaveRequestProps, IL
             {showApprovalTab && <PivotItem headerText="Pending for Approval" itemKey="approval" />}
             <PivotItem headerText="My Leaves Pending for Approval" itemKey="myPending" />
             <PivotItem headerText="Leave History" itemKey="history" />
+            {showApprovalTab && (<PivotItem headerText='Approval History' itemKey="approvalHistory"/>)}
           </Pivot>
         </div>
 
@@ -1144,7 +1255,8 @@ export default class LeaveRequest extends React.Component<ILeaveRequestProps, IL
           this.renderTable('myPending', 'There are no pending leaves as of now.')}
         {this.state.activeTab === 'history' &&
           this.renderTable('history', 'There are no leaves as of now.')}
-
+        {this.state.activeTab === 'approvalHistory' &&
+          this.renderTable('approvalHistory', 'There are no leaves as of now.')}
         {this.renderLeaveForm()}
         {this.renderCommentsDialog()}
       </section>
