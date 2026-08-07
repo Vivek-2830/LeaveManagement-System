@@ -306,26 +306,20 @@ export class LeaveService {
     reportIds: number[]
   ): Promise<ILeaveHistoryItem[]> {
   
-    let filter = 'isApproved eq 0 and isRejected eq 0';
+    let filter = "(isApproved eq 1 or isRejected eq 1 or isCancelled eq 1)";
 
     if (!isHRTeam) {
-      if (reportIds.length === 0) return [];
-      const idFilter = reportIds.map((id) => `EmpName/Id eq ${id}`).join(' or ');
-      filter = `(${idFilter}) and ${filter}`;
+
+      if (reportIds.length === 0) {
+        return [];
+      }
+  
+      const employeeFilter = reportIds
+        .map(id => `EmpNameId eq ${id}`)
+        .join(" or ");
+  
+      filter = `(${employeeFilter}) and (${filter})`;
     }
-  
-    // if (!isHRTeam) {
-  
-    //   if (reportIds.length === 0) {
-    //     return [];
-    //   }
-  
-    //   const employeeFilter = reportIds
-    //     .map(id => `EmpName/Id eq ${id}`)
-    //     .join(" or ");
-  
-    //   filter = `(${employeeFilter}) and (${filter})`;
-    // }
   
     const items = await sp.web.lists
       .getByTitle(LEAVE_HISTORY_LIST)
@@ -340,6 +334,9 @@ export class LeaveService {
         "TotalDays",
         "Description",
         "ApproverName",
+        "isApproved",
+        "isRejected",
+        "isCancelled",
         "ApproverComment"
       )
       .expand("EmpName")
