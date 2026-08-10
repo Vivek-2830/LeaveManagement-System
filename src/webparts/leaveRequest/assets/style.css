@@ -56,10 +56,90 @@
 
 /* ================= toolbar ================= */
 
-.leave-toolbar {
+/* .leave-toolbar {
     display: flex;
     justify-content: flex-end;
     margin-bottom: 16px;
+} */
+
+.leave-toolbar {
+    width: 100%;
+
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+
+    margin-bottom: 18px;
+}
+
+
+/* =========================================
+   ADD NEW BUTTON
+========================================= */
+
+.leave-toolbar .btn-primary {
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    gap: 7px;
+
+    height: 36px;
+
+    padding: 0 20px;
+
+    border: none;
+
+    border-radius: 8px;
+
+    background: #000000;
+
+    color: #ffffff;
+
+    font-family: inherit;
+
+    font-size: 15px;
+
+    font-weight: 600;
+
+    cursor: pointer;
+
+    white-space: nowrap;
+
+    transition:
+        background-color 0.2s ease,
+        transform 0.1s ease;
+}
+
+.leave-toolbar .btn-primary:hover {
+    background: #222222;
+}
+
+.leave-toolbar .btn-primary:active {
+    transform: scale(0.97);
+}
+
+
+/* =========================================
+   MOBILE
+========================================= */
+
+@media screen and (max-width: 600px) {
+
+    .leave-toolbar {
+        justify-content: flex-end;
+
+        margin-bottom: 14px;
+    }
+
+    .leave-toolbar .btn-primary {
+        height: 40px;
+
+        padding: 0 16px;
+
+        font-size: 14px;
+    }
 }
 
 /* ================= tabs (Pivot) ================= */
@@ -109,11 +189,11 @@
 
 /* ================= table ================= */
 
-.leave-table-wrap {
+/* .leave-table-wrap {
     overflow-x: auto;
-}
+} */
 
-.leave-table {
+/* .leave-table {
     width: 100%;
     border-collapse: collapse;
     background: #ffffff;
@@ -147,11 +227,345 @@
     text-align: center;
     padding: 30px;
     color: #666;
+} */
+
+/* =========================================================
+   LEAVE TABLE - FLUENT UI DETAILS LIST
+   ========================================================= */
+
+   .leave-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+
+    background: #ffffff;
+    border-radius: 10px;
+
+    /* Keep horizontal scrolling only when required */
+    scrollbar-width: thin;
+}
+
+
+/* =========================================================
+   DETAILS LIST
+   ========================================================= */
+
+.leave-table-wrap .ms-DetailsList {
+    width: 100%;
+    background: #ffffff;
+}
+
+
+/* Do NOT change the internal display/layout of
+   DetailsList rows and cells */
+
+
+/* =========================================================
+   TABLE HEADER
+   ========================================================= */
+
+.leave-table-wrap .ms-DetailsHeader {
+    background: #f4f6f7;
+
+    padding: 0;
+
+    min-height: 48px;
+    height: 48px;
+}
+
+.leave-table-wrap .ms-DetailsHeader-cell {
+    background: #f4f6f7;
+
+    height: 48px;
+    min-height: 48px;
+
+    padding: 0 14px;
+
+    font-size: 13px;
+    font-weight: 600;
+
+    color: #333333;
+
+    border: none;
+}
+
+.leave-table-wrap .ms-DetailsHeader-cell:hover {
+    background: #eef0f1;
+}
+
+
+/* Header text */
+
+.leave-table-wrap .ms-DetailsHeader-cellName {
+    font-size: 13px;
+    font-weight: 600;
+
+    color: #333333;
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+
+/* Remove Fluent UI header bottom line */
+
+.leave-table-wrap .ms-DetailsHeader-cell::after {
+    display: none;
+}
+
+
+/* =========================================================
+   TABLE ROW
+   ========================================================= */
+
+.leave-table-wrap .ms-DetailsRow {
+    min-height: 48px;
+
+    background: #ffffff;
+
+    border-bottom: 1px solid #eeeeee;
+}
+
+.leave-table-wrap .ms-DetailsRow:hover {
+    background: #fafafa;
+}
+
+
+/* =========================================================
+   TABLE CELL
+   ========================================================= */
+
+.leave-table-wrap .ms-DetailsRow-cell {
+    min-height: 48px;
+    padding: 10px 14px;
+    font-size: 13px;
+    color: #333333;
+    border: none;
+    white-space: nowrap;
+}
+
+
+/* =========================================================
+   STATUS BADGE
+   ========================================================= */
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 82px;
+    padding: 5px 12px;
+    border-radius: 7px;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.2;
+    white-space: nowrap;
+}
+
+.status-approved {
+    color: #16834b;
+    background: #ecfff2;
+}
+
+.status-pending {
+    color: #9a7410;
+    background: #fff4d6;
+}
+
+.status-rejected {
+    color: #c0392b;
+    background: #ffe9eb;
+}
+
+.status-cancelled {
+    color: #666666;
+    background: #eeeeee;
+}
+
+.leave-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+}
+
+.leave-table-wrap .btn {
+    height: 32px;
+    padding: 0 13px;
+    border: none;
+    border-radius: 7px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition:background-color 0.2s ease, transform 0.1s ease;
+}
+
+.leave-table-wrap .btn-primary {
+    background: #000000;
+    color: #ffffff;
+}
+
+.leave-table-wrap .btn-primary:hover {
+    background: #222222;
+}
+
+.leave-table-wrap .btn-primary:active {
+    transform: scale(0.97);
+}
+
+.leave-table-wrap .btn-danger {
+    background: #ffe9ed;
+    color: #d72d57;
+}
+
+.leave-table-wrap .btn-danger:hover {
+    background: #ffd9e0;
+}
+
+.leave-table-wrap .btn-danger:active {
+    transform: scale(0.97);
+}
+
+.icon-btn {
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: transparent;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 17px;
+}
+
+.icon-btn:hover {
+    background: #f5f5f5;
+}
+
+.edit-icon {
+    color: #4169e1;
+}
+
+.edit-icon:hover {
+    background: #eef2ff;
+}
+
+.delete-icon {
+    color: #e63963;
+}
+
+.delete-icon:hover {
+    background: #fff0f3;
+}
+
+.approve-icon {
+    color: #16834b;
+}
+
+.approve-icon:hover {
+    background: #ecfff2;
+}
+
+.reject-icon {
+    color: #d9363e;
+}
+
+.reject-icon:hover {
+    background: #ffe9eb;
+}
+
+.leave-empty {
+    width: 100%;
+    padding: 30px;
+    text-align: center;
+    color: #666666;
+    font-size: 14px;
+}
+
+.leave-table-wrap .ms-DetailsHeader-cellCheck {
+    display: none;
+}
+
+.leave-table-wrap .ms-DetailsRow-cellCheck {
+    display: none;
+}
+
+.leave-table-wrap .ms-DetailsHeader-cellCheck {
+    width: 0;
+    min-width: 0;
+}
+
+.leave-table-wrap .ms-DetailsHeader-sortIcon {
+    font-size: 12px;
+    color: #555555;
+}
+
+.leave-table-wrap::-webkit-scrollbar {
+    height: 7px;
+}
+
+.leave-table-wrap::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.leave-table-wrap::-webkit-scrollbar-thumb {
+    background: #999999;
+    border-radius: 10px;
+}
+
+.leave-table-wrap::-webkit-scrollbar-thumb:hover {
+    background: #777777;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media screen and (max-width: 1000px) {
+
+    .leave-table-wrap {
+        overflow-x: auto;
+    }
+
+    .leave-table-wrap .ms-DetailsList {
+        min-width: 950px;
+    }
+}
+
+
+/* =========================================================
+   SMALL SCREEN
+   ========================================================= */
+
+@media screen and (max-width: 600px) {
+
+    .leave-table-wrap .ms-DetailsHeader-cell {
+        padding: 0 10px;
+        font-size: 12px;
+    }
+
+    .leave-table-wrap .ms-DetailsRow-cell {
+        padding: 8px 10px;
+        font-size: 12px;
+    }
+
+    .leave-table-wrap .btn {
+        height: 30px;
+        padding: 0 10px;
+        font-size: 12px;
+    }
 }
 
 /* ================= status badges ================= */
 
-.status-badge {
+/* .status-badge {
     display: inline-block;
     padding: 4px 12px;
     font-size: 12px;
@@ -174,7 +588,7 @@
 .status-cancelled {
     background: #fde7e9;
     color: #a4262c;
-}
+} */
 
 /* ================= buttons ================= */
 
@@ -187,7 +601,7 @@
     cursor: pointer;
 }
 
-.btn + .btn {
+.btn+.btn {
     margin-left: 8px;
 }
 
@@ -352,7 +766,7 @@
     margin-bottom: 16px;
 }
 
-.form-errors div + div {
+.form-errors div+div {
     margin-top: 4px;
 }
 

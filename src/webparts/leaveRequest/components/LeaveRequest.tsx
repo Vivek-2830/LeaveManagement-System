@@ -824,7 +824,7 @@ export default class LeaveRequest extends React.Component<ILeaveRequestProps, IL
       key,
       name,
       fieldName: key,
-      minWidth,
+      minWidth:100,
       isResizable: false,
       isSorted: sortColumn === key,
       isSortedDescending: sortDescending,
@@ -840,7 +840,7 @@ export default class LeaveRequest extends React.Component<ILeaveRequestProps, IL
       });
     }
 
-    columns.push(sortableHeader('TotalDays', 'Total Days', 100));
+    columns.push(sortableHeader('TotalDays', 'Total Days', 90));
 
     columns.push({
       ...sortableHeader('StartDate', 'Start Date', 100),
@@ -851,7 +851,7 @@ export default class LeaveRequest extends React.Component<ILeaveRequestProps, IL
       onRender: (item: ILeaveHistoryItem) => formatDisplayDate(item.EndDate)
     });
     columns.push(sortableHeader('LeaveType', 'Leave Type', 100));
-    columns.push(sortableHeader('Description', 'Description', 100));
+    // columns.push(sortableHeader('Description', 'Description', 100));
 
     if (mode === 'history') {
       columns.push({
