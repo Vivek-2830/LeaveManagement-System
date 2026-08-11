@@ -1252,9 +1252,9 @@ export default class LeaveRequest extends React.Component<ILeaveRequestProps, IL
 
     return (
       <section className='leaveManagementSystem'>
-        <div className="leave-header">
+        {/* <div className="leave-header">
           <h2 className="section-title">{this.props.description || 'Leave Management'}</h2>
-        </div>
+        </div> */}
 
         {errorMessage && (
           <div className="message-bar error" onClick={() => this.setState({ errorMessage: '' })}>
