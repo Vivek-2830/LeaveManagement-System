@@ -1,7 +1,7 @@
 import * as React from 'react';
 import styles from './LeaveRequest.module.scss';
 import { ILeaveRequestProps } from './ILeaveRequestProps';
-import { DetailsList, IColumn, Pivot, PivotItem, SelectionMode } from 'office-ui-fabric-react';
+import { DetailsList, IColumn, Pivot, PivotItem, SearchBox, SelectionMode } from 'office-ui-fabric-react';
 import { PeoplePicker, PrincipalType } from "@pnp/spfx-controls-react/lib/PeoplePicker";
 import { escape } from '@microsoft/sp-lodash-subset';
 import { LeaveService, INewLeavePayload, IBalanceUpdate } from '../services/LeaveService';
@@ -56,6 +56,7 @@ export interface ILeaveRequestState {
 }
 
 require('../assets/style.css');
+require("../assets/fabric.min.css");
 
 export default class LeaveRequest extends React.Component<ILeaveRequestProps, ILeaveRequestState> {
 
@@ -216,7 +217,7 @@ export default class LeaveRequest extends React.Component<ILeaveRequestProps, IL
 
   private openNewLeaveForm = (): void => {
     this.setState({ isFormOpen: true, formValues: emptyLeaveForm(), formErrors: [], totalDays: 0, formOwnerBalance: this.state.balance });
-  };
+  }
 
   private openEditLeaveForm = async (itemId: number): Promise<void> => {
     const item = await this.service.getLeaveById(itemId);
@@ -238,11 +239,11 @@ export default class LeaveRequest extends React.Component<ILeaveRequestProps, IL
     };
     const { totalDays } = this.recalcTotals(values);
     this.setState({ isFormOpen: true, formValues: values, formErrors: [], totalDays, formOwnerBalance: ownerBalance, originalLeave: item });
-  };
+  }
 
   private closeForm = (): void => {
     this.setState({ isFormOpen: false, formValues: emptyLeaveForm(), formErrors: [] });
-  };
+  }
 
   private onDateChange = (field: 'startDate' | 'endDate', value: string): void => {
     const values: ILeaveFormValues = { ...this.state.formValues, [field]: value } as ILeaveFormValues;
@@ -264,13 +265,13 @@ export default class LeaveRequest extends React.Component<ILeaveRequestProps, IL
 
     const { totalDays } = this.recalcTotals(values);
     this.setState({ formValues: values, formErrors: [], totalDays });
-  };
+  }
 
   private onFieldChange = (field: keyof ILeaveFormValues, value: any): void => {
     const values: ILeaveFormValues = { ...this.state.formValues, [field]: value };
     const { totalDays } = this.recalcTotals(values);
     this.setState({ formValues: values, totalDays });
-  };
+  }
 
   private onNotifyUsersChange = (items: any[]): void => {
     this.setState({
@@ -283,7 +284,7 @@ export default class LeaveRequest extends React.Component<ILeaveRequestProps, IL
         }))
       }
     });
-  };
+  }
 
   private validate(): string[] {
     // const { formValues, totalDays, balance } = this.state;
@@ -553,7 +554,7 @@ export default class LeaveRequest extends React.Component<ILeaveRequestProps, IL
     } finally {
       this.setState({ isSaving: false });
     }
-  };
+  }
 
   /** Mirrors the legacy balance-adjustment logic: restores days under the old
    * leave type (on edit) and reserves days under the new one. */
@@ -647,17 +648,17 @@ export default class LeaveRequest extends React.Component<ILeaveRequestProps, IL
     } finally {
       this.setState({ isSaving: false });
     }
-  };
+  }
 
   /* ============================= approve / reject ============================= */
 
   private openComments = (item: ILeaveHistoryItem, action: 'approve' | 'reject'): void => {
     this.setState({ isCommentsOpen: true, commentsAction: action, commentsTarget: item, comments: '' });
-  };
+  }
 
   private closeComments = (): void => {
     this.setState({ isCommentsOpen: false, commentsAction: '', commentsTarget: undefined, comments: '' });
-  };
+  }
 
   private submitComments = async (): Promise<void> => {
     const { commentsAction, commentsTarget, currentEmployee, comments } = this.state;
@@ -723,7 +724,7 @@ export default class LeaveRequest extends React.Component<ILeaveRequestProps, IL
     } finally {
       this.setState({ isSaving: false });
     }
-  };
+  }
 
   /* ============================= render helpers ============================= */
 
@@ -814,7 +815,7 @@ export default class LeaveRequest extends React.Component<ILeaveRequestProps, IL
       sortColumn: column.key,
       sortDescending: isSameColumn ? !sortDescending : false
     });
-  };
+  }
 
   private getColumns(mode: 'approval' | 'approvalHistory' | 'myPending' | 'history'): IColumn[] {
     const { isHRTeam, isReportingManager } = this.state;
@@ -835,11 +836,23 @@ export default class LeaveRequest extends React.Component<ILeaveRequestProps, IL
 
     if (mode !== 'myPending') {
       columns.push({
-        ...sortableHeader('EmpName', 'Employee Name', 100),
+        ...sortableHeader('EmpName', 'Employee Name', 70),
         onRender: (item: ILeaveHistoryItem) => (item.EmpName ? item.EmpName.Title : '')
       });
     }
 
+    if (mode == 'myPending') {
+      columns.push({
+        ...sortableHeader('EmpName', 'Employee Name', 70),
+        onRender: (item: ILeaveHistoryItem) => (item.EmpName ? item.EmpName.Title : '')
+      });
+    }
+    
+    if (mode == 'myPending' || mode == 'approval') {
+      
+    columns.push(sortableHeader('Description', 'Description', 120));
+
+    }
     columns.push(sortableHeader('TotalDays', 'Total Days', 90));
 
     columns.push({
@@ -868,10 +881,10 @@ export default class LeaveRequest extends React.Component<ILeaveRequestProps, IL
     }
 
     if (mode === 'approvalHistory') {
-      // columns.push({
-      //   ...sortableHeader('ApproverName', 'Approver', 100),
-      //   onRender: (item: ILeaveHistoryItem) => item.ApproverName || ''
-      // });
+      columns.push({
+        ...sortableHeader('ApproverName', 'Approver', 100),
+        onRender: (item: ILeaveHistoryItem) => item.ApproverName || ''
+      });
       columns.push({
         ...sortableHeader('Status', 'Status', 100),
         onRender: (item: ILeaveHistoryItem) => {
@@ -879,6 +892,8 @@ export default class LeaveRequest extends React.Component<ILeaveRequestProps, IL
           return <span className={`status-badge ${className}`}>{status}</span>;
         }
       });
+
+
     }
 
     columns.push({
@@ -893,25 +908,25 @@ export default class LeaveRequest extends React.Component<ILeaveRequestProps, IL
           <>
             {mode === 'approval' && (
               <>
-                <button className="btn btn-primary" onClick={() => this.openComments(item, 'approve')}>Approve</button>
-                <button className="btn btn-danger" onClick={() => this.openComments(item, 'reject')}>Reject</button>
+                <button className="btn-approve" onClick={() => this.openComments(item, 'approve')}>Approve</button>
+                <button className="btn-reject" onClick={() => this.openComments(item, 'reject')}>Reject</button>
               </>
             )}
             {mode === 'myPending' && (
               <>
-                <button className="btn btn-primary" onClick={() => this.openEditLeaveForm(item.Id)}>Edit</button>
-                <button className="btn btn-danger" onClick={() => this.cancelLeave(item.Id)}>Delete</button>
+                <button className="btn-edit" onClick={() => this.openEditLeaveForm(item.Id)}>Edit</button>
+                <button className="btn-delete" onClick={() => this.cancelLeave(item.Id)}>Delete</button>
               </>
             )}
             {mode === 'history' && status === 'Pending' && (
               <>
-                {isHRTeam && <button className="btn btn-primary" onClick={() => this.openEditLeaveForm(item.Id)}>Edit</button>}
-                <button className="btn btn-danger" onClick={() => this.cancelLeave(item.Id)}>Cancel</button>
+                {isHRTeam && <button className="btn btn-edit" onClick={() => this.openEditLeaveForm(item.Id)}>Edit</button>}
+                <button className="btn-LeaveCancel" onClick={() => this.cancelLeave(item.Id)}>Cancel</button>
               </>
             )}
             {mode === 'approvalHistory' && status === 'Approved' && (
               <button
-                className="btn btn-danger"
+                className="btn-approver-cancel"
                 onClick={() => this.cancelLeave(item.Id)}
               >
                 Cancel
@@ -972,7 +987,8 @@ export default class LeaveRequest extends React.Component<ILeaveRequestProps, IL
     return (
       <>
         <div className="leave-search">
-          <input
+          <SearchBox
+            className='new-search-box'
             type="text"
             placeholder="Search"
             aria-label="Search"
@@ -1022,8 +1038,9 @@ export default class LeaveRequest extends React.Component<ILeaveRequestProps, IL
 
 
     return (
-      <div className="leave-overlay">
+      <div className="leave-overlay" >
         <div className="leave-form-panel">
+
           <div className="panel-title">{formValues.itemId > 0 ? 'Edit Leave Request' : 'Request Leave'}</div>
 
           {formErrors.length > 0 && (
@@ -1191,16 +1208,18 @@ export default class LeaveRequest extends React.Component<ILeaveRequestProps, IL
     return (
       <div className="leave-overlay comments-overlay">
         <div className="comments-panel">
-          <div className="panel-title">{title}</div>
+        <div className={`comments-title ${commentsAction === 'approve' ? 'approve-title' : 'reject-title'}`}>
+          {title}
+        </div>
           <div className="form-group">
             <label>Comments</label>
             <textarea rows={4} value={comments} onChange={(e) => this.setState({ comments: e.target.value })} />
           </div>
           <div className="form-actions">
-            <button className="btn btn-primary" disabled={isSaving} onClick={this.submitComments}>
+            <button className="btn btn-Submit" disabled={isSaving} onClick={this.submitComments}>
               Submit
             </button>
-            <button className="btn btn-secondary" disabled={isSaving} onClick={this.closeComments}>
+            <button className="btn btn-Cancel" disabled={isSaving} onClick={this.closeComments}>
               Cancel
             </button>
           </div>
@@ -1236,7 +1255,6 @@ export default class LeaveRequest extends React.Component<ILeaveRequestProps, IL
         <div className="leave-header">
           <h2 className="section-title">{this.props.description || 'Leave Management'}</h2>
         </div>
-        <div className="title-underline"></div>
 
         {errorMessage && (
           <div className="message-bar error" onClick={() => this.setState({ errorMessage: '' })}>
@@ -1260,10 +1278,6 @@ export default class LeaveRequest extends React.Component<ILeaveRequestProps, IL
           </div>
         </div>
 
-        <div className="leave-toolbar">
-          <button className="btn btn-primary" onClick={this.openNewLeaveForm}>+ Add new</button>
-        </div>
-
         <div className="leave-filters">
           <Pivot
             selectedKey={this.state.activeTab}
@@ -1276,6 +1290,11 @@ export default class LeaveRequest extends React.Component<ILeaveRequestProps, IL
             <PivotItem headerText="Leave History" itemKey="history" />
             {showApprovalTab && (<PivotItem headerText='Approval History' itemKey="approvalHistory" />)}
           </Pivot>
+
+          <div className="leave-toolbar">
+            <button className="btn btn-primary" onClick={this.openNewLeaveForm}>+ Add new</button>
+          </div>
+
         </div>
 
         {this.state.activeTab === 'approval' &&

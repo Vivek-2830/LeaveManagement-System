@@ -8,14 +8,30 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    margin-bottom: 40px;
 }
 
-.title-underline {
-    height: 3px;
-    width: 60px;
-    background: #007680;
-    margin: 6px 0 20px;
-    border-radius: 2px;
+.section-title {
+    width: 25%;
+    position: relative;
+    font-size: 17px;
+    letter-spacing: .1em;
+    color: #fff;
+    background-color: #1C81E5;
+    padding: 6px 16px;
+    filter: drop-shadow(3px 3px 3px #D3D3D3);
+}
+
+.section-title::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 20px;
+    display: inline-block;
+    width: 0;
+    height: 0;
+    border: 10px solid transparent;
+    border-top: 10px solid #1C81E5;
 }
 
 /* ================= balance cards ================= */
@@ -25,22 +41,34 @@
     gap: 16px;
     margin-bottom: 20px;
     flex-wrap: wrap;
+    width: 70%;
+    height: 110px;
 }
 
 .balance-card {
     flex: 1;
     min-width: 200px;
     border-radius: 12px;
-    padding: 18px 22px;
+    padding: 23px 27px;
     color: #ffffff;
 }
 
 .balance-card.paid {
     background: #0078d4;
+    background-image: linear-gradient(90deg, rgba(0, 107, 254, .75), rgba(15, 76, 230, .25)), url(./bg.jpg);
+    background-size: cover;
+    background-position: 50%;
+    background-repeat: no-repeat;
+    box-shadow: 0 6px 8px -3px rgba(0, 0, 0, .1), 0 4px 6px -2px rgba(0, 0, 0, .05);
 }
 
 .balance-card.unpaid {
     background: #d13438;
+    background-image: linear-gradient(90deg, rgba(209, 52, 56, .75), rgba(209, 52, 56, .25)), url(./bg.jpg);
+    background-size: cover;
+    background-position: 50%;
+    background-repeat: no-repeat;
+    box-shadow: 0 6px 8px -3px rgba(0, 0, 0, .1), 0 4px 6px -2px rgba(0, 0, 0, .05);
 }
 
 .balance-value {
@@ -64,11 +92,9 @@
 
 .leave-toolbar {
     width: 100%;
-
     display: flex;
     align-items: center;
     justify-content: flex-end;
-
     margin-bottom: 18px;
 }
 
@@ -79,41 +105,29 @@
 
 .leave-toolbar .btn-primary {
     display: inline-flex;
-
     align-items: center;
     justify-content: center;
-
     gap: 7px;
-
     height: 36px;
-
     padding: 0 20px;
-
-    border: none;
-
+    border: 1px solid #1C81E5;
     border-radius: 8px;
-
-    background: #000000;
-
+    background: #1C81E5;
     color: #ffffff;
-
     font-family: inherit;
-
     font-size: 15px;
-
     font-weight: 600;
-
     cursor: pointer;
-
     white-space: nowrap;
-
     transition:
         background-color 0.2s ease,
         transform 0.1s ease;
 }
 
 .leave-toolbar .btn-primary:hover {
-    background: #222222;
+    background: white;
+    color: #1C81E5;
+    border: 1px solid #1C81E5;
 }
 
 .leave-toolbar .btn-primary:active {
@@ -145,13 +159,15 @@
 /* ================= tabs (Pivot) ================= */
 
 .leave-filters {
+    display: flex;
     margin-bottom: 16px;
+    margin-top: 40px;
 }
 
 .leave-filters .ms-Pivot-link {
     background: #f2f2f2;
     padding: 8px 16px;
-    border-radius: 25px;
+    border-radius: 8px;
     font-weight: 600;
     color: #222;
     border: none;
@@ -164,7 +180,7 @@
 }
 
 .leave-filters .ms-Pivot-link.is-selected {
-    background: #007680;
+    background: #1C81E5;
     color: #ffffff;
 }
 
@@ -175,16 +191,32 @@
 /* ================= search ================= */
 
 .leave-search {
-    max-width: 280px;
+    /* max-width: 280px; */
     margin-bottom: 14px;
 }
 
-.leave-search input {
+/* .leave-search input {
     width: 100%;
     padding: 8px 12px;
     border-radius: 6px;
     border: 1px solid #d0d0d0;
     font-size: 14px;
+} */
+
+.new-search-box,.new-search-box:hover{
+    border: 1px solid #1C81E5;
+    border-radius: 8px;
+    height: auto;
+    padding: 7px 8px;
+    /* margin: 10px 0 10px 0; */
+    animation: none !important;
+    width: 22%;
+}
+.new-search-box::after{
+    border: 1px solid #1C81E5;
+    border-radius: 8px;
+    height: auto;
+    padding: 7px 8px;
 }
 
 /* ================= table ================= */
@@ -255,43 +287,43 @@
     background: #ffffff;
 }
 
+.ms-DetailsList, .ms-Viewport {
+    overflow: hidden;
+}
 
-/* Do NOT change the internal display/layout of
-   DetailsList rows and cells */
+.ms-Viewport {
+    margin-top: 10px;
+    box-sizing: border-box;
+    border: 0 solid #e5e7eb;
+    border-radius: .75rem;
+    border-width: 1px;
+    --tw-shadow: 0 2px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--tw-ring-offset-shadow, 0 0 transparent), var(--tw-ring-shadow, 0 0 transparent), var(--tw-shadow);
+    line-height: 18px;
+}
 
-
-/* =========================================================
-   TABLE HEADER
-   ========================================================= */
 
 .leave-table-wrap .ms-DetailsHeader {
-    background: #f4f6f7;
-
+    background: transparent;
     padding: 0;
-
     min-height: 48px;
     height: 48px;
 }
 
 .leave-table-wrap .ms-DetailsHeader-cell {
-    background: #f4f6f7;
-
+    background: transparent;
     height: 48px;
     min-height: 48px;
-
     padding: 0 14px;
-
     font-size: 13px;
     font-weight: 600;
-
     color: #333333;
-
     border: none;
 }
 
-.leave-table-wrap .ms-DetailsHeader-cell:hover {
+/* .leave-table-wrap .ms-DetailsHeader-cell:hover {
     background: #eef0f1;
-}
+} */
 
 
 /* Header text */
@@ -299,42 +331,26 @@
 .leave-table-wrap .ms-DetailsHeader-cellName {
     font-size: 13px;
     font-weight: 600;
-
     color: #333333;
-
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-
-/* Remove Fluent UI header bottom line */
-
 .leave-table-wrap .ms-DetailsHeader-cell::after {
     display: none;
 }
 
-
-/* =========================================================
-   TABLE ROW
-   ========================================================= */
-
 .leave-table-wrap .ms-DetailsRow {
     min-height: 48px;
-
-    background: #ffffff;
-
+    background: transparent;
     border-bottom: 1px solid #eeeeee;
 }
 
 .leave-table-wrap .ms-DetailsRow:hover {
-    background: #fafafa;
+    /* background: #fafafa; */
 }
 
-
-/* =========================================================
-   TABLE CELL
-   ========================================================= */
 
 .leave-table-wrap .ms-DetailsRow-cell {
     min-height: 48px;
@@ -344,11 +360,6 @@
     border: none;
     white-space: nowrap;
 }
-
-
-/* =========================================================
-   STATUS BADGE
-   ========================================================= */
 
 .status-badge {
     display: inline-flex;
@@ -404,12 +415,15 @@
 }
 
 .leave-table-wrap .btn-primary {
-    background: #000000;
+    background: #1C81E5;
     color: #ffffff;
+    border: 1px solid #1C81E5;
 }
 
 .leave-table-wrap .btn-primary:hover {
-    background: #222222;
+    background: #ffffff;
+    color: #1C81E5;
+    border: 1px solid #1C81E5;
 }
 
 .leave-table-wrap .btn-primary:active {
@@ -593,8 +607,7 @@
 /* ================= buttons ================= */
 
 .btn {
-    border: none;
-    border-radius: 6px;
+    /* border-radius: 6px; */
     padding: 8px 16px;
     font-size: 13px;
     font-weight: 600;
@@ -606,12 +619,78 @@
 }
 
 .btn-primary {
-    background: #007680;
+    background: #1C81E5;
     color: #ffffff;
+    border: 1px solid #1C81E5;
+    border-radius: 8px;
+}
+
+.btn-Submit  {
+    height: 33px;
+    border-radius: 6px;
+    padding: 6px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    background-color: #1f9365;
+    color: white;
+    border: 1px solid #1f9365;
+}
+
+.btn-edit  {
+    height: 33px;
+    border-radius: 6px;
+    padding: 6px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    background-color: #1f9365;
+    color: white;
+    border: 1px solid #1f9365;
+    width: 75px;
+}
+
+.btn-LeaveCancel {
+    height: 33px;
+    border-radius: 6px;
+    padding: 6px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    background-color: white;
+    color: rgba(209, 52, 56, .75);
+    border: 1px solid rgba(209, 52, 56, .75);
+}
+
+.btn-Cancel {
+    border-radius: 6px;
+    padding: 6px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    background-color: white;
+    color: rgba(209, 52, 56, .75);
+    border: 1px solid rgba(209, 52, 56, .75);
+    height: 33px;
+}
+
+.btn-approver-cancel {
+    border-radius: 6px;
+    padding: 6px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    background-color: white;
+    color: rgba(209, 52, 56, .75);
+    border: 1px solid rgba(209, 52, 56, .75);
+    height: 33px;
+    width: 75px;
 }
 
 .btn-primary:hover {
-    background: #005a63;
+    background: #ffffff;
+    color: #1C81E5;
+    border: 1px solid #1C81E5;
 }
 
 .btn-danger {
@@ -624,17 +703,58 @@
 }
 
 .btn-secondary {
-    background: #f2f2f2;
-    color: #333;
+    background: #ffff;
+    color: #1C81E5;
+    width: 100px;
+    border: 1px solid #1C81E5;
+    border-radius: 8px;
 }
 
-.btn-secondary:hover {
+/* .btn-secondary:hover {
     background: #e6e6e6;
-}
+} */
 
 .btn:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+}
+
+.btn-approve {
+    height: 33px;
+    border-radius: 6px;
+    padding: 6px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    background-color: #1f9365;
+    color: white;
+    border: 1px solid #1f9365;
+}
+
+.btn-reject {
+    border-radius: 6px;
+    padding: 6px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    background: white;
+    color: #f1696f;
+    border: 1px solid #f1696f;
+    margin-left: 5px;
+    height: 33px;
+}
+
+.btn-delete {
+    height: 33px;
+    border-radius: 6px;
+    padding: 6px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    background: white;
+    color: #f1696f;
+    border: 1px solid #f1696f;
+    margin-left: 5px;
 }
 
 /* ================= message bars ================= */
@@ -695,8 +815,24 @@
 .panel-title {
     font-size: 18px;
     font-weight: 700;
-    margin-bottom: 18px;
+    margin-bottom: 25px;
+    margin-top: 45px;
+    color: rgba(0, 107, 254, .75);
 }
+
+.comments-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 18px;
+  }
+  
+  .approve-title {
+    color: #1f9365;
+  }
+  
+  .reject-title {
+    color: #f1696f;
+  }
 
 .form-group {
     margin-bottom: 16px;
@@ -771,7 +907,7 @@
 }
 
 .form-actions {
-    margin-top: 20px;
+    margin-top: 25px;
 }
 
 /* ================= spinner ================= */
