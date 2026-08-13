@@ -1,7 +1,7 @@
 import * as React from 'react';
 import styles from './LeaveRequest.module.scss';
 import { ILeaveRequestProps } from './ILeaveRequestProps';
-import { DetailsList, IColumn, Pivot, PivotItem, SearchBox, SelectionMode } from 'office-ui-fabric-react';
+import { DetailsList, IColumn, Pivot, PivotItem, PrimaryButton, SearchBox, SelectionMode } from 'office-ui-fabric-react';
 import { PeoplePicker, PrincipalType } from "@pnp/spfx-controls-react/lib/PeoplePicker";
 import { escape } from '@microsoft/sp-lodash-subset';
 import { LeaveService, INewLeavePayload, IBalanceUpdate } from '../services/LeaveService';
@@ -748,20 +748,20 @@ export default class LeaveRequest extends React.Component<ILeaveRequestProps, IL
   //       <td>
   //         {mode === 'approval' && (
   //           <>
-  //             <button className="btn btn-primary" onClick={() => this.openComments(item, 'approve')}>Approve</button>
-  //             <button className="btn btn-danger" onClick={() => this.openComments(item, 'reject')}>Reject</button>
+  //             <PrimaryButton className="btn btn-primary" onClick={() => this.openComments(item, 'approve')}>Approve</PrimaryButton>
+  //             <PrimaryButton className="btn btn-danger" onClick={() => this.openComments(item, 'reject')}>Reject</PrimaryButton>
   //           </>
   //         )}
   //         {mode === 'myPending' && (
   //           <>
-  //             <button className="btn btn-primary" onClick={() => this.openEditLeaveForm(item.Id)}>Edit</button>
-  //             <button className="btn btn-danger" onClick={() => this.cancelLeave(item.Id)}>Delete</button>
+  //             <PrimaryButton className="btn btn-primary" onClick={() => this.openEditLeaveForm(item.Id)}>Edit</PrimaryButton>
+  //             <PrimaryButton className="btn btn-danger" onClick={() => this.cancelLeave(item.Id)}>Delete</PrimaryButton>
   //           </>
   //         )}
   //         {mode === 'history' && status === 'Pending' && (
   //           <>
-  //             {isHRTeam && <button className="btn btn-primary" onClick={() => this.openEditLeaveForm(item.Id)}>Edit</button>}
-  //             <button className="btn btn-danger" onClick={() => this.cancelLeave(item.Id)}>Cancel</button>
+  //             {isHRTeam && <PrimaryButton className="btn btn-primary" onClick={() => this.openEditLeaveForm(item.Id)}>Edit</PrimaryButton>}
+  //             <PrimaryButton className="btn btn-danger" onClick={() => this.cancelLeave(item.Id)}>Cancel</PrimaryButton>
   //           </>
   //         )}
   //       </td>
@@ -850,7 +850,7 @@ export default class LeaveRequest extends React.Component<ILeaveRequestProps, IL
     
     if (mode == 'myPending' || mode == 'approval') {
       
-    columns.push(sortableHeader('Description', 'Description', 120));
+    columns.push(sortableHeader('Description', 'Description', 150));
 
     }
     columns.push(sortableHeader('TotalDays', 'Total Days', 90));
@@ -908,29 +908,29 @@ export default class LeaveRequest extends React.Component<ILeaveRequestProps, IL
           <>
             {mode === 'approval' && (
               <>
-                <button className="btn-approve" onClick={() => this.openComments(item, 'approve')}>Approve</button>
-                <button className="btn-reject" onClick={() => this.openComments(item, 'reject')}>Reject</button>
+                <PrimaryButton className="btn-approve" onClick={() => this.openComments(item, 'approve')}>Approve</PrimaryButton>
+                <PrimaryButton className="btn-reject" onClick={() => this.openComments(item, 'reject')}>Reject</PrimaryButton>
               </>
             )}
             {mode === 'myPending' && (
               <>
-                <button className="btn-edit" onClick={() => this.openEditLeaveForm(item.Id)}>Edit</button>
-                <button className="btn-delete" onClick={() => this.cancelLeave(item.Id)}>Delete</button>
+                <PrimaryButton className="btn-edit" onClick={() => this.openEditLeaveForm(item.Id)}>Edit</PrimaryButton>
+                <PrimaryButton className="btn-delete" onClick={() => this.cancelLeave(item.Id)}>Delete</PrimaryButton>
               </>
             )}
             {mode === 'history' && status === 'Pending' && (
               <>
-                {isHRTeam && <button className="btn btn-edit" onClick={() => this.openEditLeaveForm(item.Id)}>Edit</button>}
-                <button className="btn-LeaveCancel" onClick={() => this.cancelLeave(item.Id)}>Cancel</button>
+                {isHRTeam && <PrimaryButton className="btn btn-edit" onClick={() => this.openEditLeaveForm(item.Id)}>Edit</PrimaryButton>}
+                <PrimaryButton className="btn-LeaveCancel" onClick={() => this.cancelLeave(item.Id)}>Cancel</PrimaryButton>
               </>
             )}
             {mode === 'approvalHistory' && status === 'Approved' && (
-              <button
+              <PrimaryButton
                 className="btn-approver-cancel"
                 onClick={() => this.cancelLeave(item.Id)}
               >
                 Cancel
-              </button>
+              </PrimaryButton>
             )}
           </>
         );
@@ -1188,12 +1188,12 @@ export default class LeaveRequest extends React.Component<ILeaveRequestProps, IL
           </div>
 
           <div className="form-actions">
-            <button className="btn btn-primary" disabled={isSaving} onClick={this.onSubmitLeaveForm}>
+            <PrimaryButton className="btn btn-primary" disabled={isSaving} onClick={this.onSubmitLeaveForm}>
               Request leave
-            </button>
-            <button className="btn btn-secondary" disabled={isSaving} onClick={this.closeForm}>
+            </PrimaryButton>
+            <PrimaryButton className="btn btn-secondary" disabled={isSaving} onClick={this.closeForm}>
               Cancel
-            </button>
+            </PrimaryButton>
           </div>
         </div>
       </div>
@@ -1216,12 +1216,12 @@ export default class LeaveRequest extends React.Component<ILeaveRequestProps, IL
             <textarea rows={4} value={comments} onChange={(e) => this.setState({ comments: e.target.value })} />
           </div>
           <div className="form-actions">
-            <button className="btn btn-Submit" disabled={isSaving} onClick={this.submitComments}>
+            <PrimaryButton className="btn btn-Submit" disabled={isSaving} onClick={this.submitComments}>
               Submit
-            </button>
-            <button className="btn btn-Cancel" disabled={isSaving} onClick={this.closeComments}>
+            </PrimaryButton>
+            <PrimaryButton className="btn btn-Cancel" disabled={isSaving} onClick={this.closeComments}>
               Cancel
-            </button>
+            </PrimaryButton>
           </div>
         </div>
       </div>
@@ -1292,7 +1292,7 @@ export default class LeaveRequest extends React.Component<ILeaveRequestProps, IL
           </Pivot>
 
           <div className="leave-toolbar">
-            <button className="btn btn-primary" onClick={this.openNewLeaveForm}>+ Add new</button>
+            <PrimaryButton className="btn btn-primary" onClick={this.openNewLeaveForm}>+ Add new</PrimaryButton>
           </div>
 
         </div>

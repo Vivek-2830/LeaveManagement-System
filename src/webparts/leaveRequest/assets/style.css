@@ -1,7 +1,23 @@
+#contentRow{
+    background-color: #ffffff !important;
+}
+.ms-WPBorder, .ms-SearchBox-field{
+    border: none !important;
+}
+.ms-webpart-titleText{
+    display: none;
+}
+
+.ms-Viewport{
+    margin-top: 0;
+}
 /* ================= layout ================= */
 
 .leaveManagementSystem {
     padding: 1em;
+    max-width: 95%;
+    margin: 0 auto;
+        font-family: system-ui !important;
 }
 
 .leave-header {
@@ -78,8 +94,8 @@
 }
 
 .balance-label {
-    font-size: 13px;
-    opacity: 0.9;
+    font-size: 15px;
+    /* opacity: 0.9; */
 }
 
 /* ================= toolbar ================= */
@@ -115,7 +131,7 @@
     background: #1C81E5;
     color: #ffffff;
     font-family: inherit;
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 600;
     cursor: pointer;
     white-space: nowrap;
@@ -292,7 +308,6 @@
 }
 
 .ms-Viewport {
-    margin-top: 10px;
     box-sizing: border-box;
     border: 0 solid #e5e7eb;
     border-radius: .75rem;
@@ -347,9 +362,9 @@
     border-bottom: 1px solid #eeeeee;
 }
 
-.leave-table-wrap .ms-DetailsRow:hover {
-    /* background: #fafafa; */
-}
+/* .leave-table-wrap .ms-DetailsRow:hover {
+    background: #fafafa;
+} */
 
 
 .leave-table-wrap .ms-DetailsRow-cell {
@@ -623,9 +638,11 @@
     color: #ffffff;
     border: 1px solid #1C81E5;
     border-radius: 8px;
+        height: auto;
+    padding: 11px 12px;
 }
 
-.btn-Submit  {
+.btn-Submit,.btn-Submit:hover  {
     height: 33px;
     border-radius: 6px;
     padding: 6px 16px;
@@ -637,7 +654,7 @@
     border: 1px solid #1f9365;
 }
 
-.btn-edit  {
+.btn-edit, .btn-edit:hover  {
     height: 33px;
     border-radius: 6px;
     padding: 6px 16px;
@@ -662,7 +679,7 @@
     border: 1px solid rgba(209, 52, 56, .75);
 }
 
-.btn-Cancel {
+.btn-Cancel, .btn-Cancel:hover {
     border-radius: 6px;
     padding: 6px 16px;
     font-size: 13px;
@@ -674,7 +691,7 @@
     height: 33px;
 }
 
-.btn-approver-cancel {
+.btn-approver-cancel, .btn-approver-cancel:hover {
     border-radius: 6px;
     padding: 6px 16px;
     font-size: 13px;
@@ -708,8 +725,12 @@
     width: 100px;
     border: 1px solid #1C81E5;
     border-radius: 8px;
+    padding: 11px;
+    height: auto;
 }
-
+.btn:hover{
+    
+}
 /* .btn-secondary:hover {
     background: #e6e6e6;
 } */
@@ -731,7 +752,7 @@
     border: 1px solid #1f9365;
 }
 
-.btn-reject {
+.btn-reject, .btn-reject:hover {
     border-radius: 6px;
     padding: 6px 16px;
     font-size: 13px;
@@ -816,7 +837,7 @@
     font-size: 18px;
     font-weight: 700;
     margin-bottom: 25px;
-    margin-top: 45px;
+    /* margin-top: 45px; */
     color: rgba(0, 107, 254, .75);
 }
 
@@ -952,4 +973,14 @@
     .leave-form-panel {
         width: 100%;
     }
+}
+
+
+.ms-BasePicker-text{
+        border: 1px solid rgb(255 255 255);
+    border-radius: 5px;
+
+}
+.ms-BasePicker-input {
+    border-radius: 5px;
 }

@@ -120,6 +120,8 @@ export class LeaveService {
   }
 
   public async getAllLeaves(isHRTeam: boolean, employeeId: number): Promise<ILeaveHistoryItem[]> {
+    let filter = 'isApproved eq 1 and isRejected eq 1 and isCancelled eq 1';
+
     let query = sp.web.lists
       .getByTitle(LEAVE_HISTORY_LIST)
       .items.select(
@@ -129,6 +131,7 @@ export class LeaveService {
         'NotifyUsers/Id', 'NotifyUsers/Title', 'NotifyUsers/EMail'
       )
       .expand('EmpName', 'NotifyUsers')
+      .filter(filter)
       .top(5000)
       .orderBy('Id', false);
 
